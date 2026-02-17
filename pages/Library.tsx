@@ -1,15 +1,53 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Play, Clock, BarChart, ChevronRight, BookOpen, Search } from 'lucide-react';
-import { MOCK_COURSES } from '../constants';
+import { supabase } from '../lib/supabase';
+import { Course } from '../types';
 
 interface LibraryProps {
   onNavigate: (page: string, params?: any) => void;
 }
 
 const Library: React.FC<LibraryProps> = ({ onNavigate }) => {
-  // Mocking purchased courses - usually from currentUser state
-  const myCourses = MOCK_COURSES.slice(0, 2);
+  const [myCourses, setMyCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchLibrary();
+  }, []);
+
+  const fetchLibrary = async () => {
+    setLoading(true);
+    
+    // 1. Obtener usuario actual
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      setMyCourses([]);
+      setLoading(false);
+      return;
+    }
+
+    // 2. Consultar compras del usuario
+    const { data, error } = await supabase
+      .from('purchases')
+      .select(`
+        courses (*)
+      `)
+      .eq('user_id', user.id);
+    
+    if (error) {
+      console.error('Error fetching library:', error);
+    } else {
+      // Mapear la respuesta para extraer solo el objeto de curso
+      // La respuesta viene como: [{ courses: { id: ..., title: ... } }, ...]
+      // Nota: Si courses es un array (relación 1:N) o objeto (1:1), Supabase lo devuelve según definición.
+      // Al ser course_id FK, es 1 curso por compra.
+      const courses = data?.map((item: any) => item.courses).filter(Boolean) || [];
+      setMyCourses(courses);
+    }
+    setLoading(false);
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen pb-24">
@@ -55,7 +93,13 @@ const Library: React.FC<LibraryProps> = ({ onNavigate }) => {
                   </div>
 
                   <button 
-                    onClick={() => onNavigate('player', { courseId: course.id })}
+                    onClick={() => {
+                      if (course.drive_link) {
+                        window.open(course.drive_link, '_blank');
+                      } else {
+                        alert('El enlace al material estará disponible pronto.');
+                      }
+                    }}
                     className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100"
                   >
                     Acceder al Curso

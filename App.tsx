@@ -11,12 +11,15 @@ import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import Refunds from './pages/Refunds';
-import { MOCK_COURSES } from './constants';
+import Admin from './pages/Admin';
 import { User, Course } from './types';
 
 // Simple Router Hook Implementation
 const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState('home');
+  const [currentPage, setCurrentPage] = useState(() => {
+    const path = window.location.pathname.substring(1);
+    return path || 'home';
+  });
   const [pageParams, setPageParams] = useState<any>({});
   const [currentUser, setCurrentUser] = useState<User | null>({
     id: 'u1',
@@ -25,9 +28,19 @@ const App: React.FC = () => {
     purchasedCourses: ['c1', 'c2']
   });
 
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname.substring(1);
+      setCurrentPage(path || 'home');
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const navigate = (page: string, params: any = {}) => {
     setCurrentPage(page);
     setPageParams(params);
+    window.history.pushState({}, '', `/${page === 'home' ? '' : page}`);
     window.scrollTo(0, 0);
   };
 
@@ -38,15 +51,11 @@ const App: React.FC = () => {
       case 'catalog':
         return <Catalog onNavigate={navigate} />;
       case 'courseDetail':
-        const course = MOCK_COURSES.find(c => c.slug === pageParams.slug);
-        if (!course) return <Catalog onNavigate={navigate} />;
-        return <CourseDetail course={course} onNavigate={navigate} />;
+        return <CourseDetail slug={pageParams.slug} onNavigate={navigate} />;
       case 'library':
         return <Library onNavigate={navigate} />;
       case 'player':
-        const playerCourse = MOCK_COURSES.find(c => c.id === pageParams.courseId);
-        if (!playerCourse) return <Library onNavigate={navigate} />;
-        return <Player course={playerCourse} onNavigate={navigate} />;
+        return <Player courseId={pageParams.courseId} onNavigate={navigate} />;
       case 'support':
         return <Support />;
       case 'terms':
@@ -55,13 +64,15 @@ const App: React.FC = () => {
         return <Privacy />;
       case 'refunds':
         return <Refunds />;
+      case 'admin':
+        return <Admin />;
       default:
         return <Home onNavigate={navigate} />;
     }
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gray-50">
       {/* Don't show regular navbar/footer in player mode */}
       {currentPage !== 'player' && (
         <Navbar onNavigate={navigate} currentUser={currentUser} />

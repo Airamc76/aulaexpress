@@ -44,7 +44,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <ul className="space-y-4 text-sm">
               <li><button onClick={() => onNavigate('terms')} className="hover:text-white transition-colors">Términos y Condiciones</button></li>
               <li><button onClick={() => onNavigate('privacy')} className="hover:text-white transition-colors">Política de Privacidad</button></li>
-              <li><button onClick={() => onNavigate('refunds')} className="hover:text-white transition-colors">Garantía y Reembolsos</button></li>
+              <li><button onClick={() => onNavigate('refunds')} className="hover:text-white transition-colors">Política de Acceso</button></li>
               <li><button onClick={() => onNavigate('support')} className="hover:text-white transition-colors">Preguntas Frecuentes</button></li>
             </ul>
           </div>

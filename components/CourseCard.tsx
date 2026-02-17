@@ -25,7 +25,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
             {course.category}
           </span>
         </div>
-        {course.oldPrice && (
+        {(course.old_price || course.oldPrice) && (
           <div className="absolute bottom-3 left-3">
             <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-lg shadow-lg animate-pulse">
               OFERTA
@@ -58,8 +58,8 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
 
         <div className="flex items-center justify-between pt-4 border-t border-gray-50">
           <div className="flex flex-col">
-            {course.oldPrice && (
-              <span className="text-xs text-slate-400 line-through">${course.oldPrice}</span>
+            {(course.old_price || course.oldPrice) && (
+              <span className="text-xs text-slate-400 line-through">${course.old_price || course.oldPrice}</span>
             )}
             <span className="text-xl font-bold text-indigo-600">${course.price}</span>
           </div>

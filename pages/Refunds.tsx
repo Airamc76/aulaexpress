@@ -41,15 +41,15 @@ const Refunds: React.FC = () => {
           </div>
           <div className="relative z-10">
             <h3 className="text-2xl font-bold mb-6 flex items-center italic">
-              Nuestra Garantía de Entrega
+              Nuestro Compromiso de Entrega
             </h3>
             <p className="text-indigo-100 text-sm mb-6 leading-relaxed">
-              Aunque no realizamos devoluciones por "arrepentimiento de compra" debido a que el material queda en tu poder, nuestra <span className="font-bold text-white">Garantía de Entrega</span> te protege al 100%:
+              Aunque no realizamos devoluciones por "arrepentimiento de compra" debido a que el material queda en tu poder, nuestro <span className="font-bold text-white">Compromiso de Calidad</span> te protege al 100%:
             </p>
             <ul className="space-y-4 text-sm text-indigo-50">
               <li className="flex items-start">
                 <CheckCircle2 className="h-5 w-5 mr-3 text-green-300 shrink-0" />
-                <span><strong>Acceso Garantizado:</strong> Si por algún error técnico no recibes tu acceso en 24 horas, nuestro equipo lo resolverá manualmente de inmediato.</span>
+                <span><strong>Acceso Asegurado:</strong> Si por algún error técnico no recibes tu acceso en 24 horas, nuestro equipo lo resolverá manualmente de inmediato.</span>
               </li>
               <li className="flex items-start">
                 <CheckCircle2 className="h-5 w-5 mr-3 text-green-300 shrink-0" />

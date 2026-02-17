@@ -1,16 +1,51 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 /* Added ChevronDown to the lucide-react imports */
 import { ArrowLeft, Play, Lock, CheckCircle, FileText, Download, ShieldCheck, ChevronRight, Library, Share2, Info, ChevronDown } from 'lucide-react';
 import { Course } from '../types';
+import { supabase } from '../lib/supabase';
 
 interface PlayerProps {
-  course: Course;
+  course?: Course;
+  courseId?: string;
   onNavigate: (page: string, params?: any) => void;
 }
 
-const Player: React.FC<PlayerProps> = ({ course, onNavigate }) => {
-  const [activeLesson, setActiveLesson] = useState(course.modules[0].lessons[0]);
+const Player: React.FC<PlayerProps> = ({ course: initialCourse, courseId, onNavigate }) => {
+  const [course, setCourse] = useState<Course | undefined>(initialCourse);
+  const [activeLesson, setActiveLesson] = useState<string>('');
+  const [loading, setLoading] = useState(!initialCourse);
+
+  useEffect(() => {
+    if (!course && courseId) {
+      fetchCourse();
+    } else if (course && course.modules?.[0]?.lessons?.[0]) {
+        setActiveLesson(course.modules[0].lessons[0]);
+        setLoading(false);
+    }
+  }, [courseId, course]);
+
+  const fetchCourse = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('courses')
+      .select('*')
+      .eq('id', courseId)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching course:', error);
+    } else if (data) {
+      setCourse(data);
+      if (data.modules?.[0]?.lessons?.[0]) {
+        setActiveLesson(data.modules[0].lessons[0]);
+      }
+    }
+    setLoading(false);
+  };
+
+  if (loading) return <div className="min-h-screen bg-[#0F172A] text-white flex items-center justify-center">Cargando...</div>;
+  if (!course) return <div className="min-h-screen bg-[#0F172A] text-white flex items-center justify-center">Curso no encontrado</div>;
 
   return (
     <div className="bg-[#0F172A] min-h-screen text-white flex flex-col">
@@ -71,10 +106,15 @@ const Player: React.FC<PlayerProps> = ({ course, onNavigate }) => {
                 </p>
                 
                 <div className="flex flex-wrap items-center justify-center gap-4">
-                  <button className="bg-indigo-600 hover:bg-indigo-700 px-8 py-3.5 rounded-2xl font-black text-sm transition-all shadow-xl shadow-indigo-600/20 flex items-center">
+                  <a 
+                    href={course.drive_link || "#"} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className={`bg-indigo-600 hover:bg-indigo-700 px-8 py-3.5 rounded-2xl font-black text-sm transition-all shadow-xl shadow-indigo-600/20 flex items-center ${!course.drive_link ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
                     Cargar Recursos Drive
                     <ExternalLink className="ml-2 h-4 w-4" />
-                  </button>
+                  </a>
                   <button className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 px-8 py-3.5 rounded-2xl font-black text-sm transition-all flex items-center">
                     <Download className="h-4 w-4 mr-2" /> Descarga Directa
                   </button>
@@ -139,7 +179,7 @@ const Player: React.FC<PlayerProps> = ({ course, onNavigate }) => {
                  </div>
                  
                  <div className="bg-[#1E293B] p-6 rounded-[2rem] border border-white/5">
-                   <h4 className="font-black text-xs uppercase text-slate-500 tracking-widest mb-4">Garantía de Acceso</h4>
+                   <h4 className="font-black text-xs uppercase text-slate-500 tracking-widest mb-4">Acceso Permanente</h4>
                    <p className="text-[11px] text-slate-400 leading-relaxed italic">"Tu acceso a esta biblioteca es permanente. Si tienes problemas para visualizar un archivo, escríbenos a ayuda@aulaexpress.com"</p>
                  </div>
               </div>

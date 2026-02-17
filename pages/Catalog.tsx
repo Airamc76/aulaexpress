@@ -1,8 +1,10 @@
 
-import React, { useState } from 'react';
-import { Search, Filter, SlidersHorizontal, ChevronDown } from 'lucide-react';
-import { MOCK_COURSES, CATEGORIES } from '../constants';
+import React, { useState, useEffect } from 'react';
+import { Search, Filter, SlidersHorizontal, ChevronDown, X, Loader2 } from 'lucide-react';
+import { CATEGORIES } from '../constants';
 import CourseCard from '../components/CourseCard';
+import { supabase } from '../lib/supabase';
+import { Course } from '../types';
 
 interface CatalogProps {
   onNavigate: (page: string, params?: any) => void;
@@ -11,11 +13,52 @@ interface CatalogProps {
 const Catalog: React.FC<CatalogProps> = ({ onNavigate }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
   const [searchQuery, setSearchQuery] = useState('');
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Suggestion Modal State
+  const [isSuggestOpen, setIsSuggestOpen] = useState(false);
+  const [suggestionText, setSuggestionText] = useState('');
+  const [suggestionEmail, setSuggestionEmail] = useState('');
+  const [isSendingSuggestion, setIsSendingSuggestion] = useState(false);
 
-  const filteredCourses = MOCK_COURSES.filter(course => {
+  useEffect(() => {
+    fetchCourses();
+  }, []);
+
+  const fetchCourses = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('courses')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching courses:', error);
+    } else {
+      setCourses(data || []);
+    }
+    setLoading(false);
+  };
+
+  const handleSuggestSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSendingSuggestion(true);
+    
+    // Simular envío de correo
+    setTimeout(() => {
+      setIsSendingSuggestion(false);
+      setIsSuggestOpen(false);
+      setSuggestionText('');
+      setSuggestionEmail('');
+      alert('¡Gracias! Hemos recibido tu sugerencia y la tendremos en cuenta para futuros cursos.');
+    }, 1500);
+  };
+
+  const filteredCourses = courses.filter(course => {
     const matchesCategory = selectedCategory === 'Todos' || course.category === selectedCategory;
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          course.description.toLowerCase().includes(searchQuery.toLowerCase());
+                          course.description?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -107,7 +150,12 @@ const Catalog: React.FC<CatalogProps> = ({ onNavigate }) => {
             <div className="bg-gradient-to-br from-indigo-600 to-blue-700 p-6 rounded-3xl text-white shadow-xl">
               <h4 className="font-bold mb-2">¿No encuentras lo que buscas?</h4>
               <p className="text-xs text-indigo-100 mb-4 opacity-80">Cuéntanos qué te gustaría aprender y te avisaremos cuando lo tengamos.</p>
-              <button className="w-full bg-white text-indigo-600 py-2 rounded-xl text-xs font-bold hover:bg-indigo-50">Sugerir Curso</button>
+              <button 
+                onClick={() => setIsSuggestOpen(true)}
+                className="w-full bg-white text-indigo-600 py-2 rounded-xl text-xs font-bold hover:bg-indigo-50"
+              >
+                Sugerir Curso
+              </button>
             </div>
           </div>
 
@@ -149,6 +197,58 @@ const Catalog: React.FC<CatalogProps> = ({ onNavigate }) => {
           </div>
         </div>
       </div>
+
+      {/* Suggestion Modal */}
+      {isSuggestOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsSuggestOpen(false)}></div>
+          <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
+            <button 
+              onClick={() => setIsSuggestOpen(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+            >
+              <X size={24} />
+            </button>
+            
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Sugerir un Curso</h3>
+            <p className="text-sm text-slate-500 mb-6">
+              Dinos qué tema te interesa y te notificaremos cuando esté disponible en el catálogo.
+            </p>
+
+            <form onSubmit={handleSuggestSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Temas o Títulos de curso</label>
+                <textarea
+                  value={suggestionText}
+                  onChange={(e) => setSuggestionText(e.target.value)}
+                  required
+                  rows={3}
+                  className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-200 outline-none resize-none"
+                  placeholder="Ej: Excel Avanzado, Marketing Digital..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Tu Email</label>
+                <input
+                  type="email"
+                  value={suggestionEmail}
+                  onChange={(e) => setSuggestionEmail(e.target.value)}
+                  required
+                  className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-200 outline-none"
+                  placeholder="tucorreo@ejemplo.com"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={isSendingSuggestion}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-indigo-100 transition-all flex items-center justify-center disabled:opacity-70"
+              >
+                {isSendingSuggestion ? <Loader2 className="animate-spin" /> : 'Enviar Sugerencia'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

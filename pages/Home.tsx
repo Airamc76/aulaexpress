@@ -1,14 +1,30 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Zap, Lock, ArrowRight, Play, Star, CheckCircle2, CloudDownload, Library, MessageCircle } from 'lucide-react';
-import { MOCK_COURSES } from '../constants';
 import CourseCard from '../components/CourseCard';
+import { supabase } from '../lib/supabase';
+import { Course } from '../types';
 
 interface HomeProps {
   onNavigate: (page: string, params?: any) => void;
 }
 
 const Home: React.FC<HomeProps> = ({ onNavigate }) => {
+  const [featuredCourses, setFeaturedCourses] = useState<Course[]>([]);
+
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      const { data } = await supabase
+        .from('courses')
+        .select('*')
+        .limit(4)
+        .order('created_at', { ascending: false });
+      
+      if (data) setFeaturedCourses(data);
+    };
+    fetchFeatured();
+  }, []);
+
   return (
     <div className="bg-white">
       {/* Hero Section */}
@@ -123,7 +139,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {MOCK_COURSES.map(course => (
+            {featuredCourses.map(course => (
               <CourseCard key={course.id} course={course} onClick={(slug) => onNavigate('courseDetail', { slug })} />
             ))}
           </div>
