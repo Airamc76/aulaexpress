@@ -17,11 +17,13 @@ ALTER TABLE public.purchases ENABLE ROW LEVEL SECURITY;
 -- 3. Políticas RLS
 
 -- A) Usuarios pueden ver sus propias compras
+DROP POLICY IF EXISTS "Users can view own purchases" ON public.purchases;
 CREATE POLICY "Users can view own purchases"
 ON public.purchases FOR SELECT
 USING (auth.uid() = user_id);
 
 -- B) Admins pueden ver todas las compras
+DROP POLICY IF EXISTS "Admins can view all purchases" ON public.purchases;
 CREATE POLICY "Admins can view all purchases"
 ON public.purchases FOR SELECT
 USING (
@@ -35,6 +37,7 @@ USING (
 -- C) Insertar compras (Permitir a service_role o usuario autenticado bajo ciertas condiciones, 
 -- pero para este flujo simple, dejaremos que se inserten vía RPC o direct policy si el usuario se acaba de crear)
 -- Para simplificar, permitiremos INSERT a cualquiera autenticado (el flujo de compra lo controla el frontend/backend)
+DROP POLICY IF EXISTS "Users can insert own purchases" ON public.purchases;
 CREATE POLICY "Users can insert own purchases"
 ON public.purchases FOR INSERT
 WITH CHECK (auth.uid() = user_id);
@@ -50,6 +53,11 @@ RETURNS void
 SECURITY DEFINER
 AS $$
 BEGIN
+  -- Verificar que el usuario existe en auth.users antes de intentar insertar
+  IF NOT EXISTS (SELECT 1 FROM auth.users WHERE id = target_user_id) THEN
+    RAISE EXCEPTION 'Usuario con ID % no encontrado en auth.users', target_user_id;
+  END IF;
+
   INSERT INTO public.purchases (user_id, course_id)
   VALUES (target_user_id, target_course_id)
   ON CONFLICT (user_id, course_id) DO NOTHING;

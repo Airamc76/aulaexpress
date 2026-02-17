@@ -43,12 +43,14 @@ const CheckoutModals: React.FC<CheckoutModalsProps> = ({ isOpen, course, onClose
     setProcessingError(null);
     
     try {
+      console.log("Iniciando mp-create-preference para:", { slug: course.slug, email });
       const { data, error } = await supabase.functions.invoke('mp-create-preference', {
         body: {
           slug: course.slug,
           buyer_email: email,
         },
       });
+      console.log("Respuesta mp-create-preference:", { data, error });
 
       if (error) throw error;
 
