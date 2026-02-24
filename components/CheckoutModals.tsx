@@ -41,31 +41,26 @@ const CheckoutModals: React.FC<CheckoutModalsProps> = ({ isOpen, course, onClose
   const processPurchase = async () => {
     setStep(3); // Loading
     setProcessingError(null);
-    
+
     try {
-      console.log("Iniciando mp-create-preference para:", { slug: course.slug, email });
-      const { data, error } = await supabase.functions.invoke('mp-create-preference', {
+      console.log("Iniciando create-checkout para:", { courseId: course.id, email });
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
-          slug: course.slug,
-          buyer_email: email,
+          courseId: course.id,
+          email: email,
         },
       });
-      console.log("Respuesta mp-create-preference:", { data, error });
+      console.log("Respuesta create-checkout:", { data, error });
 
       if (error) throw error;
 
       if (data?.ok === false) {
         const details = data?.details ? ` (${data.details})` : '';
-        const orderId = data?.order_id ? ` [order_id=${data.order_id}]` : '';
-        throw new Error(`${data?.error || 'Error en mp-create-preference'}${details}${orderId}`);
+        const orderId = data?.orderId ? ` [orderId=${data.orderId}]` : '';
+        throw new Error(`${data?.error || 'Error en create-checkout'}${details}${orderId}`);
       }
 
-      const checkoutUrl =
-        data?.checkout_url ||
-        data?.init_point ||
-        data?.preference?.init_point ||
-        data?.sandbox_init_point ||
-        data?.preference?.sandbox_init_point;
+      const checkoutUrl = data?.init_point || data?.checkout_url;
       if (!checkoutUrl) throw new Error('No se pudo obtener el link de pago.');
 
       window.location.href = checkoutUrl;
@@ -89,9 +84,9 @@ const CheckoutModals: React.FC<CheckoutModalsProps> = ({ isOpen, course, onClose
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={step < 3 ? onClose : undefined}></div>
-      
+
       <div className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden transition-all duration-300">
-        
+
         {/* Step 1: Resumen de Compra */}
         {step === 1 && (
           <div className="p-8">
@@ -115,8 +110,8 @@ const CheckoutModals: React.FC<CheckoutModalsProps> = ({ isOpen, course, onClose
                 <label className="block text-sm font-bold text-slate-700 mb-2">Email para Invitación Drive</label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300" />
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     autoFocus
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -140,11 +135,11 @@ const CheckoutModals: React.FC<CheckoutModalsProps> = ({ isOpen, course, onClose
 
               <label className="flex items-start space-x-3 cursor-pointer group">
                 <div className="mt-1 relative flex items-center justify-center">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     checked={accepted}
                     onChange={(e) => setAccepted(e.target.checked)}
-                    className="h-5 w-5 rounded-lg border-2 border-slate-200 text-indigo-600 focus:ring-indigo-500 cursor-pointer" 
+                    className="h-5 w-5 rounded-lg border-2 border-slate-200 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                   />
                 </div>
                 <span className="text-xs text-slate-500 leading-snug group-hover:text-slate-700 transition-colors">
@@ -153,7 +148,7 @@ const CheckoutModals: React.FC<CheckoutModalsProps> = ({ isOpen, course, onClose
               </label>
             </div>
 
-            <button 
+            <button
               disabled={!email || !accepted}
               onClick={handleNext}
               className="w-full bg-indigo-600 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed hover:bg-indigo-700 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-indigo-100 transition-all flex flex-col items-center justify-center leading-tight px-4 group"
@@ -179,8 +174,8 @@ const CheckoutModals: React.FC<CheckoutModalsProps> = ({ isOpen, course, onClose
               <p className="text-sm text-slate-600 mb-8 leading-relaxed">
                 Estás a un paso de desbloquear la biblioteca. Tu pago de <span className="font-black text-slate-900">${course.price}</span> se procesará de forma 100% segura.
               </p>
-              
-              <button 
+
+              <button
                 onClick={processPurchase}
                 className="w-full bg-[#009EE3] hover:bg-[#0089c7] text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-blue-100 transition-all flex items-center justify-center uppercase tracking-tight"
               >
@@ -222,10 +217,10 @@ const CheckoutModals: React.FC<CheckoutModalsProps> = ({ isOpen, course, onClose
         {step === 4 && (
           <div className="p-10 text-center">
             <div className="relative inline-block mb-8">
-               <div className="absolute inset-0 bg-green-100 rounded-full animate-pulse opacity-50 scale-125"></div>
-               <div className="relative bg-green-500 w-24 h-24 rounded-full flex items-center justify-center mx-auto shadow-xl shadow-green-100">
-                 <CheckCircle className="h-12 w-12 text-white" />
-               </div>
+              <div className="absolute inset-0 bg-green-100 rounded-full animate-pulse opacity-50 scale-125"></div>
+              <div className="relative bg-green-500 w-24 h-24 rounded-full flex items-center justify-center mx-auto shadow-xl shadow-green-100">
+                <CheckCircle className="h-12 w-12 text-white" />
+              </div>
             </div>
             <h3 className="text-3xl font-black text-slate-900 mb-3 leading-tight uppercase tracking-tighter italic">¡ACCESO ACTIVADO!</h3>
             <p className="text-slate-500 text-sm mb-6 leading-relaxed font-medium">
@@ -234,7 +229,7 @@ const CheckoutModals: React.FC<CheckoutModalsProps> = ({ isOpen, course, onClose
 
             {generatedPassword && (
               <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl mb-6 text-left">
-                <p className="text-xs text-yellow-800 font-bold mb-2 uppercase flex items-center"><Key className="h-3 w-3 mr-1"/> Tu Contraseña Temporal:</p>
+                <p className="text-xs text-yellow-800 font-bold mb-2 uppercase flex items-center"><Key className="h-3 w-3 mr-1" /> Tu Contraseña Temporal:</p>
                 <div className="flex justify-between items-center bg-white p-2 rounded-lg border border-yellow-100">
                   <code className="text-lg font-mono font-bold text-slate-800">{generatedPassword}</code>
                   <span className="text-[10px] text-slate-400 uppercase">Copiar</span>
@@ -242,9 +237,9 @@ const CheckoutModals: React.FC<CheckoutModalsProps> = ({ isOpen, course, onClose
                 <p className="text-[10px] text-yellow-700 mt-2 leading-tight">Usa esta contraseña para entrar a tu biblioteca. Puedes cambiarla después.</p>
               </div>
             )}
-            
+
             <div className="space-y-4">
-              <button 
+              <button
                 onClick={handleFinish}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-indigo-100 transition-all uppercase tracking-tight flex items-center justify-center"
               >
