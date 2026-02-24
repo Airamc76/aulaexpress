@@ -15,8 +15,8 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentUser }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
-          <div 
-            className="flex items-center cursor-pointer group" 
+          <div
+            className="flex items-center cursor-pointer group"
             onClick={() => onNavigate('home')}
           >
             <div className="bg-indigo-600 p-2 rounded-lg group-hover:bg-indigo-700 transition-colors">
@@ -47,20 +47,20 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentUser }) => {
               Mi Biblioteca
             </button>
             <button onClick={() => onNavigate('support')} className="text-sm font-medium text-gray-600 hover:text-indigo-600">Soporte</button>
-            
+
             <div className="h-6 w-px bg-gray-200"></div>
-            
+
             {currentUser ? (
-              <button 
+              <button
                 onClick={() => onNavigate('library')}
                 className="flex items-center space-x-2 text-sm font-medium text-gray-700 bg-gray-100 px-4 py-2 rounded-full hover:bg-gray-200"
               >
                 <User className="h-4 w-4" />
-                <span>{currentUser.name.split(' ')[0]}</span>
+                <span>Mi Biblioteca</span>
               </button>
             ) : (
-              <button 
-                onClick={() => onNavigate('catalog')}
+              <button
+                onClick={() => onNavigate('login')}
                 className="bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-indigo-700 transition-shadow hover:shadow-lg shadow-indigo-200/50"
               >
                 Acceder
@@ -84,7 +84,7 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentUser }) => {
           <button onClick={() => { onNavigate('library'); setIsOpen(false); }} className="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md">Mi Biblioteca</button>
           <button onClick={() => { onNavigate('support'); setIsOpen(false); }} className="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md">Soporte</button>
           <div className="pt-2">
-            <button 
+            <button
               onClick={() => { onNavigate('catalog'); setIsOpen(false); }}
               className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold"
             >

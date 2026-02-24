@@ -12,7 +12,12 @@ import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import Refunds from './pages/Refunds';
 import Admin from './pages/Admin';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentFailure from './pages/PaymentFailure';
+import Login from './pages/Login';
+import ForcePasswordChange from './components/ForcePasswordChange';
 import { User, Course } from './types';
+import { supabase } from './lib/supabase';
 
 // Simple Router Hook Implementation
 const App: React.FC = () => {
@@ -21,16 +26,43 @@ const App: React.FC = () => {
     return path || 'home';
   });
   const [pageParams, setPageParams] = useState<any>({});
-  const [currentUser, setCurrentUser] = useState<User | null>({
-    id: 'u1',
-    name: 'Usuario Demo',
-    email: 'demo@aulaexpress.com',
-    purchasedCourses: ['c1', 'c2']
-  });
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [session, setSession] = useState<any>(null);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        setCurrentUser({ id: session.user.id, name: session.user.email?.split('@')[0] || 'User', email: session.user.email || '', purchasedCourses: [] });
+        // Check if user must change password
+        if (session.user.user_metadata?.must_change_password) {
+          setMustChangePassword(true);
+        }
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session?.user) {
+        setCurrentUser({ id: session.user.id, name: session.user.email?.split('@')[0] || 'User', email: session.user.email || '', purchasedCourses: [] });
+        if (session.user.user_metadata?.must_change_password) {
+          setMustChangePassword(true);
+        } else {
+          setMustChangePassword(false);
+        }
+      } else {
+        setCurrentUser(null);
+        setMustChangePassword(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     const handlePopState = () => {
-      const path = window.location.pathname.substring(1);
+      const path = window.location.pathname.substring(1).split('?')[0]; // Remove query params from path for routing
       setCurrentPage(path || 'home');
     };
     window.addEventListener('popstate', handlePopState);
@@ -40,7 +72,18 @@ const App: React.FC = () => {
   const navigate = (page: string, params: any = {}) => {
     setCurrentPage(page);
     setPageParams(params);
-    window.history.pushState({}, '', `/${page === 'home' ? '' : page}`);
+
+    // Construct URL with query parameters
+    let url = `/${page === 'home' ? '' : page}`;
+    if (Object.keys(params).length > 0) {
+      const searchParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        searchParams.set(key, String(value));
+      });
+      url += `?${searchParams.toString()}`;
+    }
+
+    window.history.pushState({}, '', url);
     window.scrollTo(0, 0);
   };
 
@@ -48,6 +91,8 @@ const App: React.FC = () => {
     switch (currentPage) {
       case 'home':
         return <Home onNavigate={navigate} />;
+      case 'login':
+        return <Login onNavigate={navigate} />;
       case 'catalog':
         return <Catalog onNavigate={navigate} />;
       case 'courseDetail':
@@ -66,6 +111,14 @@ const App: React.FC = () => {
         return <Refunds />;
       case 'admin':
         return <Admin />;
+      case 'payment/success':
+      case 'checkout/success':
+        return <PaymentSuccess onNavigate={navigate} />;
+      case 'payment/failure':
+      case 'checkout/failure':
+      case 'payment/pending':
+      case 'checkout/pending':
+        return <PaymentFailure onNavigate={navigate} />;
       default:
         return <Home onNavigate={navigate} />;
     }
@@ -77,10 +130,17 @@ const App: React.FC = () => {
       {currentPage !== 'player' && (
         <Navbar onNavigate={navigate} currentUser={currentUser} />
       )}
-      
+
       <main className="flex-grow">
         {renderPage()}
       </main>
+
+      {mustChangePassword && (
+        <ForcePasswordChange
+          onSuccess={() => setMustChangePassword(false)}
+          onCancel={() => supabase.auth.signOut()}
+        />
+      )}
 
       {currentPage !== 'player' && (
         <Footer onNavigate={navigate} />

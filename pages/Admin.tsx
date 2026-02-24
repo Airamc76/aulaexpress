@@ -5,6 +5,7 @@ import { CATEGORIES } from '../constants';
 import { Plus, Trash2, Edit, Save, X, BookOpen, LogOut, Users, Shield, Smartphone, Loader2, RefreshCw, AlertTriangle, Upload } from 'lucide-react';
 import AdminAuth from '../components/AdminAuth';
 import AdminUsers from '../components/AdminUsers';
+import AdminOrders from '../components/AdminOrders';
 import * as QRCode from 'qrcode'; // Safer import
 
 const Admin: React.FC = () => {
@@ -13,12 +14,12 @@ const Admin: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false); // Controls general panel access
   const [userRole, setUserRole] = useState<'admin' | 'staff' | null>(null); // Controls specific features
   const [checkingRole, setCheckingRole] = useState(false);
-  const [activeTab, setActiveTab] = useState<'courses' | 'users'>('courses');
-  
+  const [activeTab, setActiveTab] = useState<'courses' | 'users' | 'orders'>('courses');
+
   // Security States
   const [isSetupRequired, setIsSetupRequired] = useState(false);
   const [isVerifyRequired, setIsVerifyRequired] = useState(false);
-  
+
   // 2FA Setup/Verify Data
   const [mfaSecret, setMfaSecret] = useState<string>('');
   const [mfaQr, setMfaQr] = useState<string>('');
@@ -70,7 +71,7 @@ const Admin: React.FC = () => {
   const initializeAdmin = async () => {
     setLoadingSession(true);
     const { data: { session } } = await supabase.auth.getSession();
-    
+
     if (!session) {
       setSession(null);
       setLoadingSession(false);
@@ -106,7 +107,7 @@ const Admin: React.FC = () => {
     } else {
       setIsAdmin(false);
     }
-    
+
     setLoadingSession(false);
   };
 
@@ -129,13 +130,13 @@ const Admin: React.FC = () => {
       if (aalError) throw aalError;
 
       if (aal && aal.currentLevel === 'aal1') {
-         return 'VERIFY_NEEDED';
+        return 'VERIFY_NEEDED';
       }
 
       return 'OK';
     } catch (e) {
       console.error('Security check failed:', e);
-      return 'VERIFY_NEEDED'; 
+      return 'VERIFY_NEEDED';
     }
   };
 
@@ -146,8 +147,8 @@ const Admin: React.FC = () => {
 
       console.log('Ejecutando Hard Reset 2FA para:', session.user.id);
       // Llamada RPC al backend para borrar factores a la fuerza
-      const { error } = await supabase.rpc('reset_user_2fa_by_admin', { 
-        target_user_id: session.user.id 
+      const { error } = await supabase.rpc('reset_user_2fa_by_admin', {
+        target_user_id: session.user.id
       });
 
       if (error) throw error;
@@ -180,12 +181,12 @@ const Admin: React.FC = () => {
         factorType: 'totp',
         friendlyName: `AdminPanel-${Date.now()}`,
       });
-      
+
       if (error) throw error;
 
       setMfaFactorId(data.id);
       setMfaSecret(data.totp.secret);
-      
+
       const qrUrl = await QRCode.toDataURL(data.totp.uri);
       setMfaQr(qrUrl);
     } catch (err: any) {
@@ -253,9 +254,9 @@ const Admin: React.FC = () => {
       .select('role')
       .eq('id', userId)
       .single();
-    
+
     setCheckingRole(false);
-    
+
     // Permitir acceso a admin y staff
     if (data && (data.role === 'admin' || data.role === 'staff')) {
       setUserRole(data.role); // Guardamos el rol específico
@@ -283,7 +284,7 @@ const Admin: React.FC = () => {
       .from('courses')
       .select('*')
       .order('created_at', { ascending: false });
-    
+
     if (error) console.error('Error fetching courses:', error);
     else {
       const fetchedCourses = data || [];
@@ -323,7 +324,7 @@ const Admin: React.FC = () => {
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
-    
+
     setUploadingImage(true);
     const file = e.target.files[0];
     const fileExt = file.name.split('.').pop();
@@ -367,8 +368,8 @@ const Admin: React.FC = () => {
 
   // --- RENDER ---
   if (loadingSession || checkingRole) return <div className="flex justify-center items-center min-h-screen text-indigo-600 font-bold">Cargando panel...</div>;
-  
-  if (!session) return <AdminAuth onLoginSuccess={() => {}} />;
+
+  if (!session) return <AdminAuth onLoginSuccess={() => { }} />;
 
   // 2FA INTERCEPT SCREENS
   if (isSetupRequired) {
@@ -410,7 +411,7 @@ const Admin: React.FC = () => {
                   <AlertTriangle className="text-red-500 shrink-0 mt-0.5" size={16} />
                   <p className="text-red-600 text-xs font-bold text-left flex-1">{securityError}</p>
                 </div>
-                
+
                 <div className="flex flex-col gap-2 w-full">
                   <button
                     type="button"
@@ -419,7 +420,7 @@ const Admin: React.FC = () => {
                   >
                     <RefreshCw size={14} className="mr-2" /> Reintentar Generación
                   </button>
-                  
+
                   <button
                     type="button"
                     onClick={handleHardReset2FA}
@@ -510,32 +511,44 @@ const Admin: React.FC = () => {
       <div className="container mx-auto p-6">
         {/* Navigation Tabs */}
         <div className="flex gap-4 mb-8 overflow-x-auto pb-2">
-          <button 
+          <button
             onClick={() => setActiveTab('courses')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${
-              activeTab === 'courses' 
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' 
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'courses'
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
                 : 'bg-white text-slate-500 hover:bg-indigo-50 hover:text-indigo-600'
-            }`}
+              }`}
           >
             <BookOpen size={20} /> Gestionar Cursos
           </button>
-          
+
           {userRole === 'admin' && (
-            <button 
-              onClick={() => setActiveTab('users')}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${
-                activeTab === 'users' 
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' 
-                  : 'bg-white text-slate-500 hover:bg-indigo-50 hover:text-indigo-600'
-              }`}
-            >
-              <Users size={20} /> Usuarios y Accesos
-            </button>
+            <>
+              <button
+                onClick={() => setActiveTab('users')}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'users'
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
+                    : 'bg-white text-slate-500 hover:bg-indigo-50 hover:text-indigo-600'
+                  }`}
+              >
+                <Users size={20} /> Usuarios y Accesos
+              </button>
+
+              <button
+                onClick={() => setActiveTab('orders')}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'orders'
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
+                    : 'bg-white text-slate-500 hover:bg-indigo-50 hover:text-indigo-600'
+                  }`}
+              >
+                <Shield size={20} /> Ventas (MP)
+              </button>
+            </>
           )}
         </div>
 
-        {activeTab === 'users' && userRole === 'admin' ? (
+        {activeTab === 'orders' && userRole === 'admin' ? (
+          <AdminOrders />
+        ) : activeTab === 'users' && userRole === 'admin' ? (
           <AdminUsers />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -545,7 +558,7 @@ const Admin: React.FC = () => {
                 {editingCourseId ? <Edit size={20} className="text-indigo-600" /> : <Plus size={20} className="text-indigo-600" />}
                 {editingCourseId ? 'Editar Curso' : 'Crear Nuevo Curso'}
               </h2>
-              
+
               <form onSubmit={handleCourseSubmit} className="space-y-4">
                 {/* Title */}
                 <div>
@@ -553,7 +566,7 @@ const Admin: React.FC = () => {
                   <input
                     type="text"
                     value={courseForm.title || ''}
-                    onChange={(e) => setCourseForm({...courseForm, title: e.target.value})}
+                    onChange={(e) => setCourseForm({ ...courseForm, title: e.target.value })}
                     className="w-full rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
                     required
                   />
@@ -565,7 +578,7 @@ const Admin: React.FC = () => {
                     <input
                       type="number"
                       value={courseForm.price || 0}
-                      onChange={(e) => setCourseForm({...courseForm, price: parseFloat(e.target.value)})}
+                      onChange={(e) => setCourseForm({ ...courseForm, price: parseFloat(e.target.value) })}
                       className="w-full rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
                     />
                   </div>
@@ -573,7 +586,7 @@ const Admin: React.FC = () => {
                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nivel</label>
                     <select
                       value={courseForm.level || 'Básico'}
-                      onChange={(e) => setCourseForm({...courseForm, level: e.target.value as any})}
+                      onChange={(e) => setCourseForm({ ...courseForm, level: e.target.value as any })}
                       className="w-full rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
                     >
                       <option value="Básico">Básico</option>
@@ -585,7 +598,7 @@ const Admin: React.FC = () => {
                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Idioma</label>
                     <select
                       value={courseForm.language || 'Español'}
-                      onChange={(e) => setCourseForm({...courseForm, language: e.target.value as any})}
+                      onChange={(e) => setCourseForm({ ...courseForm, language: e.target.value as any })}
                       className="w-full rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
                     >
                       <option value="Español">Español</option>
@@ -601,10 +614,10 @@ const Admin: React.FC = () => {
                     onChange={(e) => {
                       if (e.target.value === 'NEW') {
                         setIsCustomCategory(true);
-                        setCourseForm({...courseForm, category: ''});
+                        setCourseForm({ ...courseForm, category: '' });
                       } else {
                         setIsCustomCategory(false);
-                        setCourseForm({...courseForm, category: e.target.value});
+                        setCourseForm({ ...courseForm, category: e.target.value });
                       }
                     }}
                     className="w-full rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 mb-2"
@@ -617,7 +630,7 @@ const Admin: React.FC = () => {
                       type="text"
                       placeholder="Nombre de nueva categoría"
                       value={courseForm.category}
-                      onChange={(e) => setCourseForm({...courseForm, category: e.target.value})}
+                      onChange={(e) => setCourseForm({ ...courseForm, category: e.target.value })}
                       className="w-full rounded-lg border-indigo-200 bg-indigo-50 focus:border-indigo-500 focus:ring-indigo-500"
                       autoFocus
                     />
@@ -628,7 +641,7 @@ const Admin: React.FC = () => {
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Descripción</label>
                   <textarea
                     value={courseForm.description || ''}
-                    onChange={(e) => setCourseForm({...courseForm, description: e.target.value})}
+                    onChange={(e) => setCourseForm({ ...courseForm, description: e.target.value })}
                     rows={3}
                     className="w-full rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
                   />
@@ -637,16 +650,16 @@ const Admin: React.FC = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Imagen (Subir o URL)</label>
-                    
+
                     <div className="flex items-center gap-2 mb-2">
                       <label className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg cursor-pointer hover:bg-indigo-100 transition-colors w-full border border-indigo-200 border-dashed">
                         <Upload size={18} />
                         <span className="text-sm font-bold">{uploadingImage ? 'Subiendo...' : 'Subir Imagen'}</span>
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          onChange={handleImageUpload} 
-                          className="hidden" 
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
                           disabled={uploadingImage}
                         />
                       </label>
@@ -656,7 +669,7 @@ const Admin: React.FC = () => {
                       type="text"
                       placeholder="O pega una URL externa..."
                       value={courseForm.thumbnail || ''}
-                      onChange={(e) => setCourseForm({...courseForm, thumbnail: e.target.value})}
+                      onChange={(e) => setCourseForm({ ...courseForm, thumbnail: e.target.value })}
                       className="w-full rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
                     />
                     {courseForm.thumbnail && (
@@ -670,7 +683,7 @@ const Admin: React.FC = () => {
                     <input
                       type="text"
                       value={courseForm.drive_link || ''}
-                      onChange={(e) => setCourseForm({...courseForm, drive_link: e.target.value})}
+                      onChange={(e) => setCourseForm({ ...courseForm, drive_link: e.target.value })}
                       className="w-full rounded-lg border-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
                       placeholder="https://drive.google.com/..."
                     />

@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Play, Clock, BarChart, ChevronRight, BookOpen, Search } from 'lucide-react';
+import { Play, Clock, BarChart, ChevronRight, BookOpen, Loader2, LogOut } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Course } from '../types';
 
@@ -18,44 +17,77 @@ const Library: React.FC<LibraryProps> = ({ onNavigate }) => {
 
   const fetchLibrary = async () => {
     setLoading(true);
-    
+
     // 1. Obtener usuario actual
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       setMyCourses([]);
       setLoading(false);
+      // Redirect to login if user tries to access library directly
+      onNavigate('login');
       return;
     }
 
-    // 2. Consultar compras del usuario
-    const { data, error } = await supabase
-      .from('purchases')
-      .select(`
-        courses (*)
-      `)
-      .eq('user_id', user.id);
-    
-    if (error) {
-      console.error('Error fetching library:', error);
+    // 2. Check if it's the admin/test user
+    if (user.id === '9dd41198-07c6-4fa7-a251-1bff84f63053') {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('*');
+
+      if (error) {
+        console.error('Error fetching all courses:', error);
+      } else {
+        setMyCourses(data || []);
+      }
     } else {
-      // Mapear la respuesta para extraer solo el objeto de curso
-      // La respuesta viene como: [{ courses: { id: ..., title: ... } }, ...]
-      // Nota: Si courses es un array (relación 1:N) o objeto (1:1), Supabase lo devuelve según definición.
-      // Al ser course_id FK, es 1 curso por compra.
-      const courses = data?.map((item: any) => item.courses).filter(Boolean) || [];
-      setMyCourses(courses);
+      // 3. Consultar accesos del usuario normal
+      const { data, error } = await supabase
+        .from('course_access')
+        .select(`
+          courses (*)
+        `)
+        .eq('user_id', user.id)
+        .eq('active', true);
+
+      if (error) {
+        console.error('Error fetching library:', error);
+      } else {
+        // Mapear la respuesta para extraer solo el objeto de curso
+        const courses = data?.map((item: any) => item.courses).filter(Boolean) || [];
+        setMyCourses(courses);
+      }
     }
     setLoading(false);
   };
+
+  if (loading) {
+    return (
+      <div className="bg-gray-50 min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-indigo-600 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen pb-24">
       {/* Header */}
       <div className="bg-white border-b border-gray-100 pt-16 pb-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-extrabold text-slate-900 mb-2">Mi Biblioteca</h1>
-          <p className="text-slate-500">Tienes {myCourses.length} cursos activos.</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-extrabold text-slate-900 mb-2">Mi Biblioteca</h1>
+            <p className="text-slate-500">Tienes {myCourses.length} cursos activos.</p>
+          </div>
+          <button
+            onClick={async () => {
+              await supabase.auth.signOut();
+              onNavigate('login');
+            }}
+            className="flex items-center text-slate-500 hover:text-red-600 transition-colors font-medium bg-slate-50 hover:bg-red-50 px-4 py-2 rounded-xl"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Cerrar Sesión
+          </button>
         </div>
       </div>
 
@@ -80,19 +112,19 @@ const Library: React.FC<LibraryProps> = ({ onNavigate }) => {
                   <h3 className="text-xl font-bold text-slate-900 mb-4 line-clamp-2 leading-tight">
                     {course.title}
                   </h3>
-                  
-                  <div className="flex items-center justify-between text-xs text-slate-500 mb-6 border-t border-gray-50 pt-4">
+
+                  <div className="flex items-center justify-between text-xs text-slate-500 mb-6 border-t border-gray-50 pt-4 mt-auto">
                     <div className="flex items-center">
                       <Clock className="h-3.5 w-3.5 mr-1" />
-                      {course.duration}
+                      {course.duration || 'N/A'}
                     </div>
                     <div className="flex items-center">
                       <BarChart className="h-3.5 w-3.5 mr-1" />
-                      {course.level}
+                      {course.level || 'Todos los niveles'}
                     </div>
                   </div>
 
-                  <button 
+                  <button
                     onClick={() => {
                       if (course.drive_link) {
                         window.open(course.drive_link, '_blank');
@@ -110,7 +142,7 @@ const Library: React.FC<LibraryProps> = ({ onNavigate }) => {
             ))}
 
             {/* Add more button */}
-            <div 
+            <div
               onClick={() => onNavigate('catalog')}
               className="bg-gray-100 rounded-3xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center p-12 hover:bg-white hover:border-indigo-200 transition-all cursor-pointer group"
             >
@@ -128,13 +160,13 @@ const Library: React.FC<LibraryProps> = ({ onNavigate }) => {
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-4">Tu biblioteca está vacía</h2>
             <p className="text-slate-500 mb-8 leading-relaxed">
-              Empieza a aprender hoy mismo. Nuestros cursos son económicos y de acceso inmediato.
+              Explora nuestro catálogo para encontrar el diseño que elevará tu marca.
             </p>
-            <button 
+            <button
               onClick={() => onNavigate('catalog')}
-              className="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl shadow-indigo-100"
+              className="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl shadow-indigo-100 transition-transform hover:scale-105"
             >
-              Ver Cursos Disponibles
+              Ver Catálogo
             </button>
           </div>
         )}
