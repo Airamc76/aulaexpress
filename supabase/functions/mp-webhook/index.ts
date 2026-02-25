@@ -98,17 +98,19 @@ serve(async (req) => {
         let newPassword = "";
         let isNewUser = false;
 
-        // Check if user exists
-        const { data: existingUserObj, error: userSearchErr } = await supabase.auth.admin.getUserByEmail(order.email);
+        // Use buyer_email from the database schema
+        const buyerEmail = order.buyer_email || order.email;
 
-        // Auth api can sometimes return error if user don't exist, sometimes returns empty.
+        // Check if user exists
+        const { data: existingUserObj, error: userSearchErr } = await supabase.auth.admin.getUserByEmail(buyerEmail);
+
         if (existingUserObj?.user?.id) {
             userId = existingUserObj.user.id;
         } else {
             // Create User
             newPassword = generateTempPassword();
             const { data: newUserObj, error: createError } = await supabase.auth.admin.createUser({
-                email: order.email,
+                email: buyerEmail,
                 password: newPassword,
                 email_confirm: true,
                 user_metadata: { must_change_password: true }
@@ -142,7 +144,7 @@ serve(async (req) => {
           <p>Has adquirido el curso: <strong>${course?.title || "Curso"}</strong></p>
           <p>Tus credenciales de acceso temporal son:</p>
           <ul>
-            <li>Email: ${order.email}</li>
+            <li>Email: ${buyerEmail}</li>
             <li>Contraseña temporal: <strong>${newPassword}</strong></li>
           </ul>
           <p><strong>Importante:</strong> Se te pedirá que cambies esta contraseña al ingresar por primera vez.</p>
@@ -165,7 +167,7 @@ serve(async (req) => {
                 },
                 body: JSON.stringify({
                     from: EMAIL_FROM,
-                    to: order.email,
+                    to: buyerEmail,
                     subject: "Tus credenciales de acceso - AulaExpress",
                     html: emailHtml
                 })
@@ -187,7 +189,7 @@ serve(async (req) => {
         await supabase.from("email_logs").insert({
             order_id: order.id,
             type: "credentials",
-            to_email: order.email,
+            to_email: buyerEmail,
             status: emailStatus,
             provider_id: providerId,
             error: emailError

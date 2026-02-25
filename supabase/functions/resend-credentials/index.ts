@@ -51,7 +51,12 @@ serve(async (req) => {
             return new Response(JSON.stringify({ ok: false, error: "Missing orderId" }), { status: 400, headers: corsHeaders });
         }
 
-        const { data: order, error: orderErr } = await supabase.from("orders").select("id, email, course_id, status").eq("id", orderId).maybeSingle();
+        // Use buyer_email from schema
+        const { data: order, error: orderErr } = await supabase
+            .from("orders")
+            .select("id, buyer_email, course_id, status")
+            .eq("id", orderId)
+            .maybeSingle();
 
         if (orderErr || !order) {
             return new Response(JSON.stringify({ ok: false, error: "Order not found" }), { status: 404, headers: corsHeaders });
@@ -63,8 +68,10 @@ serve(async (req) => {
 
         const { data: course } = await supabase.from("courses").select("slug, title").eq("id", order.course_id).maybeSingle();
 
+        const buyerEmail = order.buyer_email;
+
         // Find User
-        const { data: existingUserObj } = await supabase.auth.admin.getUserByEmail(order.email);
+        const { data: existingUserObj } = await supabase.auth.admin.getUserByEmail(buyerEmail);
         const targetUserId = existingUserObj?.user?.id;
 
         if (!targetUserId) {
@@ -86,7 +93,7 @@ serve(async (req) => {
         <h2>Reenvío de tus credenciales de acceso</h2>
         <p>A pedido del administrador, estas son tus nuevas credenciales para el curso: <strong>${course?.title || "Curso"}</strong></p>
         <ul>
-          <li>Email: ${order.email}</li>
+          <li>Email: ${buyerEmail}</li>
           <li>Contraseña temporal: <strong>${newPassword}</strong></li>
         </ul>
         <p><strong>Importante:</strong> Se te pedirá que cambies esta contraseña al ingresar.</p>
@@ -101,7 +108,7 @@ serve(async (req) => {
                 },
                 body: JSON.stringify({
                     from: EMAIL_FROM,
-                    to: order.email,
+                    to: buyerEmail,
                     subject: "Tus nuevas credenciales de acceso - AulaExpress",
                     html: emailHtml
                 })
@@ -123,7 +130,7 @@ serve(async (req) => {
         await supabase.from("email_logs").insert({
             order_id: order.id,
             type: "credentials_resend",
-            to_email: order.email,
+            to_email: buyerEmail,
             status: emailStatus,
             provider_id: providerId,
             error: emailError
