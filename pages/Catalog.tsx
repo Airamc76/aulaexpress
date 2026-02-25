@@ -8,14 +8,21 @@ import { Course } from '../types';
 
 interface CatalogProps {
   onNavigate: (page: string, params?: any) => void;
+  searchQuery?: string;
 }
 
-const Catalog: React.FC<CatalogProps> = ({ onNavigate }) => {
+const Catalog: React.FC<CatalogProps> = ({ onNavigate, searchQuery: initialSearch }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialSearch || '');
+
+  useEffect(() => {
+    if (initialSearch !== undefined) {
+      setSearchQuery(initialSearch);
+    }
+  }, [initialSearch]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Suggestion Modal State
   const [isSuggestOpen, setIsSuggestOpen] = useState(false);
   const [suggestionText, setSuggestionText] = useState('');
@@ -32,7 +39,7 @@ const Catalog: React.FC<CatalogProps> = ({ onNavigate }) => {
       .from('courses')
       .select('*')
       .order('created_at', { ascending: false });
-    
+
     if (error) {
       console.error('Error fetching courses:', error);
     } else {
@@ -44,7 +51,7 @@ const Catalog: React.FC<CatalogProps> = ({ onNavigate }) => {
   const handleSuggestSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSendingSuggestion(true);
-    
+
     // Simular envío de correo
     setTimeout(() => {
       setIsSendingSuggestion(false);
@@ -57,8 +64,8 @@ const Catalog: React.FC<CatalogProps> = ({ onNavigate }) => {
 
   const filteredCourses = courses.filter(course => {
     const matchesCategory = selectedCategory === 'Todos' || course.category === selectedCategory;
-    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          course.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.description?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -69,15 +76,15 @@ const Catalog: React.FC<CatalogProps> = ({ onNavigate }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <h1 className="text-4xl font-extrabold text-white mb-4">Nuestro Catálogo</h1>
           <p className="text-indigo-100 text-lg mb-8 max-w-2xl">
-            Aprende habilidades digitales demandadas sin romper el banco. <br className="hidden md:block" /> 
+            Aprende habilidades digitales demandadas sin romper el banco. <br className="hidden md:block" />
             Cursos prácticos, directos y económicos.
           </p>
 
           <div className="bg-white p-2 rounded-2xl shadow-xl flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 max-w-4xl">
             <div className="flex-1 relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Busca un curso (ej: Marketing, Excel, Python...)"
@@ -86,7 +93,7 @@ const Catalog: React.FC<CatalogProps> = ({ onNavigate }) => {
             </div>
             <div className="h-px md:h-auto md:w-px bg-gray-100 my-2 md:my-0"></div>
             <div className="md:w-64 relative">
-              <select 
+              <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="w-full h-full pl-4 pr-10 py-4 bg-transparent focus:outline-none appearance-none font-bold text-slate-900 cursor-pointer"
@@ -108,7 +115,7 @@ const Catalog: React.FC<CatalogProps> = ({ onNavigate }) => {
       {/* Grid section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-20">
         <div className="flex flex-col md:flex-row gap-8">
-          
+
           {/* Sidebar Filters (Desktop) */}
           <div className="hidden lg:block w-64 space-y-8">
             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
@@ -117,7 +124,7 @@ const Catalog: React.FC<CatalogProps> = ({ onNavigate }) => {
                   <SlidersHorizontal className="h-4 w-4 mr-2 text-indigo-600" />
                   Filtros
                 </h3>
-                <button 
+                <button
                   onClick={() => setSelectedCategory('Todos')}
                   className="text-xs text-indigo-600 font-bold"
                 >
@@ -128,14 +135,14 @@ const Catalog: React.FC<CatalogProps> = ({ onNavigate }) => {
               <div>
                 <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Categorías</h4>
                 <div className="space-y-2">
-                  <button 
+                  <button
                     onClick={() => setSelectedCategory('Todos')}
                     className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${selectedCategory === 'Todos' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-gray-50'}`}
                   >
                     Todos
                   </button>
                   {CATEGORIES.map(cat => (
-                    <button 
+                    <button
                       key={cat}
                       onClick={() => setSelectedCategory(cat)}
                       className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${selectedCategory === cat ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-gray-50'}`}
@@ -150,7 +157,7 @@ const Catalog: React.FC<CatalogProps> = ({ onNavigate }) => {
             <div className="bg-gradient-to-br from-indigo-600 to-blue-700 p-6 rounded-3xl text-white shadow-xl">
               <h4 className="font-bold mb-2">¿No encuentras lo que buscas?</h4>
               <p className="text-xs text-indigo-100 mb-4 opacity-80">Cuéntanos qué te gustaría aprender y te avisaremos cuando lo tengamos.</p>
-              <button 
+              <button
                 onClick={() => setIsSuggestOpen(true)}
                 className="w-full bg-white text-indigo-600 py-2 rounded-xl text-xs font-bold hover:bg-indigo-50"
               >
@@ -186,8 +193,8 @@ const Catalog: React.FC<CatalogProps> = ({ onNavigate }) => {
                 <Search className="h-12 w-12 text-slate-200 mx-auto mb-4" />
                 <h3 className="text-xl font-bold text-slate-900 mb-2">No encontramos resultados</h3>
                 <p className="text-slate-500 mb-6">Prueba con otras palabras clave o categorías.</p>
-                <button 
-                  onClick={() => {setSelectedCategory('Todos'); setSearchQuery('');}}
+                <button
+                  onClick={() => { setSelectedCategory('Todos'); setSearchQuery(''); }}
                   className="bg-indigo-600 text-white px-6 py-2 rounded-full font-bold"
                 >
                   Ver todo el catálogo
@@ -203,13 +210,13 @@ const Catalog: React.FC<CatalogProps> = ({ onNavigate }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsSuggestOpen(false)}></div>
           <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
-            <button 
+            <button
               onClick={() => setIsSuggestOpen(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
             >
               <X size={24} />
             </button>
-            
+
             <h3 className="text-xl font-bold text-slate-900 mb-2">Sugerir un Curso</h3>
             <p className="text-sm text-slate-500 mb-6">
               Dinos qué tema te interesa y te notificaremos cuando esté disponible en el catálogo.

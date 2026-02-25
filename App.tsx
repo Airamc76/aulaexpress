@@ -94,7 +94,7 @@ const App: React.FC = () => {
       case 'login':
         return <Login onNavigate={navigate} />;
       case 'catalog':
-        return <Catalog onNavigate={navigate} />;
+        return <Catalog onNavigate={navigate} searchQuery={pageParams.q} />;
       case 'courseDetail':
         return <CourseDetail slug={pageParams.slug} onNavigate={navigate} />;
       case 'library':

@@ -20,8 +20,8 @@ const Player: React.FC<PlayerProps> = ({ course: initialCourse, courseId, onNavi
     if (!course && courseId) {
       fetchCourse();
     } else if (course && course.modules?.[0]?.lessons?.[0]) {
-        setActiveLesson(course.modules[0].lessons[0]);
-        setLoading(false);
+      setActiveLesson(course.modules[0].lessons[0]);
+      setLoading(false);
     }
   }, [courseId, course]);
 
@@ -32,7 +32,7 @@ const Player: React.FC<PlayerProps> = ({ course: initialCourse, courseId, onNavi
       .select('*')
       .eq('id', courseId)
       .single();
-    
+
     if (error) {
       console.error('Error fetching course:', error);
     } else if (data) {
@@ -52,8 +52,8 @@ const Player: React.FC<PlayerProps> = ({ course: initialCourse, courseId, onNavi
       {/* Navigation Header */}
       <div className="bg-[#1E293B]/80 backdrop-blur-md border-b border-white/5 px-6 py-4 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center space-x-4">
-          <button 
-            onClick={() => onNavigate('library')} 
+          <button
+            onClick={() => onNavigate('library')}
             className="p-2.5 hover:bg-white/10 rounded-xl transition-all border border-transparent hover:border-white/10"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -80,16 +80,16 @@ const Player: React.FC<PlayerProps> = ({ course: initialCourse, courseId, onNavi
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto bg-black/40">
           <div className="max-w-[1200px] mx-auto p-4 md:p-8">
-            
+
             {/* Virtual Player Area */}
             <div className="aspect-video w-full rounded-3xl overflow-hidden bg-slate-900 shadow-2xl relative mb-8 group ring-1 ring-white/10">
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/20 to-slate-900/40"></div>
-              <img 
-                src={course.thumbnail} 
-                className="w-full h-full object-cover opacity-30 group-hover:scale-105 transition-transform duration-1000" 
-                alt="" 
+              <img
+                src={course.thumbnail}
+                className="w-full h-full object-cover opacity-30 group-hover:scale-105 transition-transform duration-1000"
+                alt=""
               />
-              
+
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
                 <div className="relative mb-8">
                   <div className="absolute inset-0 bg-indigo-600 rounded-full blur-2xl opacity-40 animate-pulse"></div>
@@ -97,30 +97,27 @@ const Player: React.FC<PlayerProps> = ({ course: initialCourse, courseId, onNavi
                     <Play className="h-10 w-10 text-indigo-600 fill-current ml-1 transition-transform group-hover/play:scale-110" />
                   </button>
                 </div>
-                
+
                 <h3 className="text-2xl md:text-3xl font-black mb-4 tracking-tight leading-tight">
                   {activeLesson}
                 </h3>
                 <p className="text-slate-400 text-sm md:text-base font-medium italic max-w-md opacity-80 mb-8">
                   "Contenido exclusivo para tu biblioteca personal. Acceso directo configurado."
                 </p>
-                
+
                 <div className="flex flex-wrap items-center justify-center gap-4">
-                  <a 
-                    href={course.drive_link || "#"} 
-                    target="_blank" 
+                  <a
+                    href={course.drive_link || "#"}
+                    target="_blank"
                     rel="noreferrer"
                     className={`bg-indigo-600 hover:bg-indigo-700 px-8 py-3.5 rounded-2xl font-black text-sm transition-all shadow-xl shadow-indigo-600/20 flex items-center ${!course.drive_link ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     Cargar Recursos Drive
                     <ExternalLink className="ml-2 h-4 w-4" />
                   </a>
-                  <button className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 px-8 py-3.5 rounded-2xl font-black text-sm transition-all flex items-center">
-                    <Download className="h-4 w-4 mr-2" /> Descarga Directa
-                  </button>
                 </div>
               </div>
-              
+
               {/* Overlay info */}
               <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between text-[10px] font-bold text-white/40 uppercase tracking-widest">
                 <span>Sesión Protegida: v3.4</span>
@@ -140,10 +137,10 @@ const Player: React.FC<PlayerProps> = ({ course: initialCourse, courseId, onNavi
                     Estás visualizando el material de la biblioteca privada. Todo el contenido está optimizado para aplicación rápida. Si necesitas los archivos editables, puedes encontrarlos en la sección de recursos.
                   </p>
                 </div>
-                
+
                 <div className="bg-[#1E293B] p-8 rounded-[2.5rem] border border-white/5 shadow-xl">
                   <h4 className="font-black text-sm uppercase tracking-widest text-indigo-400 mb-6 flex items-center">
-                    <FileText className="h-4 w-4 mr-2" /> 
+                    <FileText className="h-4 w-4 mr-2" />
                     Archivos de Trabajo (Drive)
                   </h4>
                   <div className="space-y-4">
@@ -170,18 +167,18 @@ const Player: React.FC<PlayerProps> = ({ course: initialCourse, courseId, onNavi
               </div>
 
               <div className="space-y-6">
-                 <div className="bg-gradient-to-br from-indigo-600 to-blue-700 p-8 rounded-[2.5rem] shadow-2xl shadow-indigo-600/10">
-                   <h4 className="font-black text-sm uppercase mb-4 tracking-tighter">Soporte Prioritario</h4>
-                   <p className="text-sm text-indigo-100/70 mb-8 leading-relaxed font-medium">¿Tienes alguna duda técnica con este módulo? Nuestro equipo responde en tiempo récord vía Telegram.</p>
-                   <button className="w-full bg-white text-indigo-600 py-4 rounded-2xl font-black text-sm transition-all hover:scale-[1.02] shadow-xl">
-                     Chatear con un Tutor
-                   </button>
-                 </div>
-                 
-                 <div className="bg-[#1E293B] p-6 rounded-[2rem] border border-white/5">
-                   <h4 className="font-black text-xs uppercase text-slate-500 tracking-widest mb-4">Acceso Permanente</h4>
-                   <p className="text-[11px] text-slate-400 leading-relaxed italic">"Tu acceso a esta biblioteca es permanente. Si tienes problemas para visualizar un archivo, escríbenos a ayuda@aulaexpress.com"</p>
-                 </div>
+                <div className="bg-gradient-to-br from-indigo-600 to-blue-700 p-8 rounded-[2.5rem] shadow-2xl shadow-indigo-600/10">
+                  <h4 className="font-black text-sm uppercase mb-4 tracking-tighter">Soporte Prioritario</h4>
+                  <p className="text-sm text-indigo-100/70 mb-8 leading-relaxed font-medium">¿Tienes alguna duda técnica con este módulo? Nuestro equipo responde en tiempo récord vía Telegram.</p>
+                  <button className="w-full bg-white text-indigo-600 py-4 rounded-2xl font-black text-sm transition-all hover:scale-[1.02] shadow-xl">
+                    Chatear con un Tutor
+                  </button>
+                </div>
+
+                <div className="bg-[#1E293B] p-6 rounded-[2rem] border border-white/5">
+                  <h4 className="font-black text-xs uppercase text-slate-500 tracking-widest mb-4">Acceso Permanente</h4>
+                  <p className="text-[11px] text-slate-400 leading-relaxed italic">"Tu acceso a esta biblioteca es permanente. Si tienes problemas para visualizar un archivo, escríbenos a ayuda@aulaexpress.com"</p>
+                </div>
               </div>
             </div>
 
@@ -215,7 +212,7 @@ const Player: React.FC<PlayerProps> = ({ course: initialCourse, courseId, onNavi
                 </div>
                 <div className="bg-[#0F172A]/30">
                   {module.lessons.map((lesson, lIdx) => (
-                    <button 
+                    <button
                       key={lIdx}
                       onClick={() => setActiveLesson(lesson)}
                       className={`w-full text-left px-8 py-5 flex items-start transition-all border-l-4 ${activeLesson === lesson ? 'bg-indigo-600/10 border-indigo-500' : 'border-transparent hover:bg-white/5'}`}
@@ -238,7 +235,7 @@ const Player: React.FC<PlayerProps> = ({ course: initialCourse, courseId, onNavi
           </div>
         </div>
       </div>
-      
+
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }

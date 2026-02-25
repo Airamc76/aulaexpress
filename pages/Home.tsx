@@ -19,7 +19,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
         .select('*')
         .limit(4)
         .order('created_at', { ascending: false });
-      
+
       if (data) setFeaturedCourses(data);
     };
     fetchFeatured();
@@ -31,7 +31,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
       <section className="relative pt-20 pb-24 overflow-hidden">
         <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-96 h-96 bg-indigo-100 rounded-full blur-3xl opacity-50"></div>
         <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-96 h-96 bg-blue-100 rounded-full blur-3xl opacity-50"></div>
-        
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="flex flex-col lg:flex-row items-center">
             <div className="lg:w-1/2 text-center lg:text-left mb-12 lg:mb-0">
@@ -46,27 +46,28 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
               <p className="text-xl text-slate-500 mb-10 max-w-xl mx-auto lg:mx-0">
                 Accede a carpetas privadas, descarga contenido sin límites y aprende sin plataformas lentas. <span className="font-bold text-slate-900">Pagás una vez, desbloqueás para siempre</span> vía Mercado Pago.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-4">
-                <button 
+                <button
                   onClick={() => onNavigate('catalog')}
                   className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl shadow-indigo-200 transition-all flex items-center justify-center"
                 >
                   Explorar Bibliotecas
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </button>
-                <button 
+                <button
+                  onClick={() => onNavigate('library')}
                   className="w-full sm:w-auto bg-white border border-gray-200 hover:border-indigo-300 text-slate-700 px-8 py-4 rounded-2xl font-bold text-lg flex items-center justify-center transition-all"
                 >
-                  <CloudDownload className="h-5 w-5 mr-2 text-indigo-600" />
-                  Descarga Directa
+                  <Library className="h-5 w-5 mr-2 text-indigo-600" />
+                  Acceder a mi Biblioteca
                 </button>
               </div>
 
               <div className="mt-10 flex items-center justify-center lg:justify-start space-x-8">
                 <div className="flex -space-x-2">
-                  {[1,2,3,4].map(i => (
-                    <img key={i} src={`https://picsum.photos/seed/${i+10}/64/64`} className="w-10 h-10 rounded-full border-2 border-white" alt="" />
+                  {[1, 2, 3, 4].map(i => (
+                    <img key={i} src={`https://picsum.photos/seed/${i + 10}/64/64`} className="w-10 h-10 rounded-full border-2 border-white" alt="" />
                   ))}
                 </div>
                 <div className="text-sm text-slate-500">
@@ -77,8 +78,8 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
 
             <div className="lg:w-1/2 relative">
               <div className="relative z-10 bg-indigo-50 p-4 rounded-3xl">
-                <img 
-                  src="https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=2070&auto=format&fit=crop" 
+                <img
+                  src="https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=2070&auto=format&fit=crop"
                   className="rounded-2xl shadow-2xl w-full object-cover aspect-[4/3] brightness-95"
                   alt="Acceso Privado AulaExpress"
                 />

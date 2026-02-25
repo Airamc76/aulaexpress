@@ -127,9 +127,6 @@ const CheckoutModals: React.FC<CheckoutModalsProps> = ({ isOpen, course, onClose
                   <li className="flex items-center text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                     <Zap className="h-3 w-3 mr-2 text-yellow-500 fill-current" /> Incluye: Acceso Vitalicio
                   </li>
-                  <li className="flex items-center text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                    <Zap className="h-3 w-3 mr-2 text-yellow-500 fill-current" /> Incluye: Descarga Directa
-                  </li>
                 </ul>
               </div>
 

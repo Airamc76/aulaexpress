@@ -33,6 +33,15 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentUser }) => {
               </div>
               <input
                 type="text"
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '') onNavigate('catalog', { q: '' });
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    onNavigate('catalog', { q: (e.target as HTMLInputElement).value });
+                  }
+                }}
                 className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-full bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                 placeholder="¿Qué biblioteca quieres desbloquear?"
               />

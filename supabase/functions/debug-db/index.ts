@@ -38,7 +38,8 @@ serve(async (req) => {
                 hasMP: !!Deno.env.get("MP_ACCESS_TOKEN"),
                 hasResend: !!Deno.env.get("RESEND_API_KEY"),
                 mpPrefix: Deno.env.get("MP_ACCESS_TOKEN")?.substring(0, 10),
-                mpLength: Deno.env.get("MP_ACCESS_TOKEN")?.length
+                mpLength: Deno.env.get("MP_ACCESS_TOKEN")?.length,
+                appBaseUrl: Deno.env.get("APP_BASE_URL")
             }
         }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
