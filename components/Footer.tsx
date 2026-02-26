@@ -21,9 +21,9 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               Democratizando el aprendizaje con bibliotecas digitales directas y de acceso inmediato. Pagás, recibís y aprendés en tu Drive.
             </p>
             <div className="flex space-x-4">
-              <Instagram className="h-5 w-5 cursor-pointer hover:text-white" />
-              <Twitter className="h-5 w-5 cursor-pointer hover:text-white" />
-              <Facebook className="h-5 w-5 cursor-pointer hover:text-white" />
+              <a href="https://www.instagram.com/aulaexpress_cursos/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                <Instagram className="h-5 w-5" />
+              </a>
             </div>
           </div>
 
@@ -56,7 +56,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               <p className="flex items-center"><Mail className="h-4 w-4 mr-2 text-indigo-400" /> ayuda@aulaexpress.com</p>
               <div className="bg-slate-800 p-4 rounded-xl">
                 <p className="text-xs text-slate-400 mb-2">¿Necesitas ayuda rápida?</p>
-                <button 
+                <button
                   onClick={() => onNavigate('support')}
                   className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-bold transition-colors"
                 >

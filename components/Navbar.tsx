@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, ShoppingCart, User, Menu, X, BookOpen, Library } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, X, BookOpen, Library, Instagram } from 'lucide-react';
 
 interface NavbarProps {
   onNavigate: (page: string, params?: any) => void;
@@ -56,6 +56,9 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentUser }) => {
               Mi Biblioteca
             </button>
             <button onClick={() => onNavigate('support')} className="text-sm font-medium text-gray-600 hover:text-indigo-600">Soporte</button>
+            <a href="https://www.instagram.com/aulaexpress_cursos/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-indigo-600 transition-colors">
+              <Instagram className="h-5 w-5" />
+            </a>
 
             <div className="h-6 w-px bg-gray-200"></div>
 
