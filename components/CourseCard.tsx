@@ -10,14 +10,14 @@ interface CourseCardProps {
 
 const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
   return (
-    <div 
+    <div
       className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-indigo-200 transition-all hover:shadow-xl group cursor-pointer"
       onClick={() => onClick(course.slug)}
     >
       <div className="relative h-48 overflow-hidden">
-        <img 
-          src={course.thumbnail} 
-          alt={course.title} 
+        <img
+          src={course.thumbnail}
+          alt={course.title}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
         />
         <div className="absolute top-3 right-3">
@@ -59,9 +59,13 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
         <div className="flex items-center justify-between pt-4 border-t border-gray-50">
           <div className="flex flex-col">
             {(course.old_price || course.oldPrice) && (
-              <span className="text-xs text-slate-400 line-through">${course.old_price || course.oldPrice}</span>
+              <span className="text-xs text-slate-400 line-through">
+                ${new Intl.NumberFormat('de-DE').format(Number(course.old_price || course.oldPrice))}
+              </span>
             )}
-            <span className="text-xl font-bold text-indigo-600">${course.price}</span>
+            <span className="text-xl font-bold text-indigo-600">
+              ${new Intl.NumberFormat('de-DE').format(course.price)}
+            </span>
           </div>
           <button className="bg-gray-50 p-2 rounded-full group-hover:bg-indigo-600 group-hover:text-white transition-colors">
             <ArrowRight className="h-5 w-5" />

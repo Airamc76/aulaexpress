@@ -47,7 +47,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course: initialCourse, slug
       .select('*')
       .eq('slug', slug)
       .single();
-    
+
     if (error) {
       console.error('Error fetching course:', error);
     } else if (data) {
@@ -73,10 +73,10 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course: initialCourse, slug
 
   return (
     <div className="bg-white min-h-screen">
-      <CheckoutModals 
-        isOpen={isCheckoutOpen} 
-        course={course} 
-        onClose={() => setIsCheckoutOpen(false)} 
+      <CheckoutModals
+        isOpen={isCheckoutOpen}
+        course={course}
+        onClose={() => setIsCheckoutOpen(false)}
         onSuccess={() => onNavigate('library')}
       />
 
@@ -91,7 +91,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course: initialCourse, slug
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
         <div className="flex flex-col lg:flex-row gap-12">
-          
+
           {/* Content side */}
           <div className="lg:w-2/3">
             <div className="inline-flex items-center bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold mb-4 border border-indigo-100 uppercase tracking-widest">
@@ -101,10 +101,10 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course: initialCourse, slug
             <p className="text-xl text-slate-500 mb-8 font-medium leading-relaxed">
               No estás comprando un curso común. Estás accediendo a una biblioteca privada, actualizada y directa, <span className="text-slate-900 font-bold">sin plataformas complicadas ni distracciones.</span>
             </p>
-            
+
             <div className="aspect-video w-full rounded-3xl overflow-hidden bg-slate-900 mb-12 shadow-2xl relative group">
-              <img 
-                src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=2070&q=80" 
+              <img
+                src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=2070&q=80"
                 alt="Cómo funciona el acceso a Google Drive"
                 className="w-full h-full object-cover"
               />
@@ -151,7 +151,9 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course: initialCourse, slug
                 </table>
                 <div className="mt-8 p-6 bg-indigo-50 rounded-2xl text-center border border-indigo-100">
                   <p className="text-indigo-600 font-bold mb-1">OFERTA DE ACCESO HOY:</p>
-                  <p className="text-5xl font-black text-slate-900">${course.price}</p>
+                  <p className="text-5xl font-black text-slate-900">
+                    ${new Intl.NumberFormat('de-DE').format(course.price)}
+                  </p>
                 </div>
               </div>
             </div>
@@ -180,21 +182,25 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course: initialCourse, slug
                 <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-black px-10 py-1 rotate-45 translate-x-10 translate-y-3 uppercase tracking-tighter">
                   -90% OFF
                 </div>
-                
+
                 <h3 className="text-xl font-bold text-slate-900 mb-2">¡Bono de Acción Rápida!</h3>
                 <p className="text-xs text-slate-500 mb-6">Incluye Checklist descargable + Guía extra de implementación si compras ahora.</p>
 
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex flex-col">
-                    <span className="text-4xl font-extrabold text-slate-900">${course.price}</span>
+                    <span className="text-4xl font-extrabold text-slate-900">
+                      ${new Intl.NumberFormat('de-DE').format(course.price)}
+                    </span>
                     {(course.old_price || course.oldPrice) && (
-                      <span className="text-sm text-slate-400 line-through">Valor real: ${course.old_price || course.oldPrice}</span>
+                      <span className="text-sm text-slate-400 line-through">
+                        Valor real: ${new Intl.NumberFormat('de-DE').format(Number(course.old_price || course.oldPrice))}
+                      </span>
                     )}
                   </div>
                 </div>
 
                 <div className="space-y-4 mb-8">
-                  <button 
+                  <button
                     onClick={() => setIsCheckoutOpen(true)}
                     className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-indigo-200 transition-all transform hover:scale-[1.02] flex items-center justify-center leading-tight px-4"
                   >

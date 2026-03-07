@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Zap, Lock, ArrowRight, Play, Star, CheckCircle2, CloudDownload, Library, MessageCircle } from 'lucide-react';
 import CourseCard from '../components/CourseCard';
+import CourseCarousel from '../components/CourseCarousel';
 import { supabase } from '../lib/supabase';
 import { Course } from '../types';
 
@@ -17,7 +18,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
       const { data } = await supabase
         .from('courses')
         .select('*')
-        .limit(4)
+        .limit(8)
         .order('created_at', { ascending: false });
 
       if (data) setFeaturedCourses(data);
@@ -139,10 +140,17 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
             <p className="text-slate-500">Habilidades de alto valor con acceso directo inmediato.</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {featuredCourses.map(course => (
-              <CourseCard key={course.id} course={course} onClick={(slug) => onNavigate('courseDetail', { slug })} />
-            ))}
+          <div className="relative">
+            {featuredCourses.length > 0 ? (
+              <CourseCarousel
+                courses={featuredCourses}
+                onCourseClick={(slug) => onNavigate('courseDetail', { slug })}
+              />
+            ) : (
+              <div className="flex justify-center p-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+              </div>
+            )}
           </div>
         </div>
       </section>

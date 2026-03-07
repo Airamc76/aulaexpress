@@ -151,7 +151,7 @@ const CheckoutModals: React.FC<CheckoutModalsProps> = ({ isOpen, course, onClose
               className="w-full bg-indigo-600 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed hover:bg-indigo-700 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-indigo-100 transition-all flex flex-col items-center justify-center leading-tight px-4 group"
             >
               <span>CONTINUAR AL DESBLOQUEO</span>
-              <span className="text-[10px] opacity-70 group-disabled:opacity-0">VALOR REAL: $1,135 | HOY: ${course.price}</span>
+              <span className="text-[10px] opacity-70 group-disabled:opacity-0">VALOR REAL: $1,135 | HOY: ${new Intl.NumberFormat('de-DE').format(course.price)}</span>
             </button>
           </div>
         )}
@@ -169,7 +169,7 @@ const CheckoutModals: React.FC<CheckoutModalsProps> = ({ isOpen, course, onClose
                 <MercadoPagoLogo className="h-20 w-auto shrink-0 block" />
               </div>
               <p className="text-sm text-slate-600 mb-8 leading-relaxed">
-                Estás a un paso de desbloquear la biblioteca. Tu pago de <span className="font-black text-slate-900">${course.price}</span> se procesará de forma 100% segura.
+                Estás a un paso de desbloquear la biblioteca. Tu pago de <span className="font-black text-slate-900">${new Intl.NumberFormat('de-DE').format(course.price)}</span> se procesará de forma 100% segura.
               </p>
 
               <button
