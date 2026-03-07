@@ -146,8 +146,8 @@ const Library: React.FC<LibraryProps> = ({ onNavigate }) => {
               onClick={() => onNavigate('catalog')}
               className="bg-gray-100 rounded-3xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center p-12 hover:bg-white hover:border-indigo-200 transition-all cursor-pointer group"
             >
-              <div className="bg-white p-4 rounded-full text-slate-400 group-hover:text-indigo-600 shadow-sm mb-4 transition-colors">
-                <BookOpen className="h-8 w-8" />
+              <div className="bg-white p-4 rounded-full shadow-sm mb-4 transition-colors">
+                <img src="/logo.png" className="h-8 w-8 opacity-40 group-hover:opacity-100 transition-opacity" alt="" />
               </div>
               <p className="font-bold text-slate-900 mb-1">Expandir mi conocimiento</p>
               <p className="text-sm text-slate-500">Ver catálogo completo</p>
@@ -155,8 +155,8 @@ const Library: React.FC<LibraryProps> = ({ onNavigate }) => {
           </div>
         ) : (
           <div className="max-w-md mx-auto py-24 text-center">
-            <div className="bg-indigo-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8">
-              <BookOpen className="h-10 w-10 text-indigo-600" />
+            <div className="w-24 h-24 flex items-center justify-center mx-auto mb-8">
+              <img src="/logo.png" className="h-20 w-20 object-contain" alt="" />
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-4">Tu biblioteca está vacía</h2>
             <p className="text-slate-500 mb-8 leading-relaxed">

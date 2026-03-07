@@ -14,8 +14,8 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           {/* Brand */}
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center mb-6">
-              <BookOpen className="h-8 w-8 text-indigo-400" />
-              <span className="ml-3 text-2xl font-bold text-white">AulaExpress</span>
+              <img src="/logo.png" alt="AulaExpress Logo" className="h-10 w-10 object-contain mr-3" />
+              <span className="text-2xl font-bold text-white tracking-tight">Aula<span className="text-indigo-400">Express</span></span>
             </div>
             <p className="text-slate-400 text-sm leading-relaxed mb-6">
               Democratizando el aprendizaje con bibliotecas digitales directas y de acceso inmediato. Pagás, recibís y aprendés en tu Drive.

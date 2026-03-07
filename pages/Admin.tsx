@@ -514,11 +514,11 @@ const Admin: React.FC = () => {
           <button
             onClick={() => setActiveTab('courses')}
             className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'courses'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
-                : 'bg-white text-slate-500 hover:bg-indigo-50 hover:text-indigo-600'
+              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
+              : 'bg-white text-slate-500 hover:bg-indigo-50 hover:text-indigo-600'
               }`}
           >
-            <BookOpen size={20} /> Gestionar Cursos
+            <img src="/logo.png" className={`w-5 h-5 object-contain mr-1 ${activeTab === 'courses' ? 'brightness-0 invert opacity-90' : 'opacity-60'}`} alt="" /> Gestionar Cursos
           </button>
 
           {userRole === 'admin' && (
@@ -526,8 +526,8 @@ const Admin: React.FC = () => {
               <button
                 onClick={() => setActiveTab('users')}
                 className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'users'
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
-                    : 'bg-white text-slate-500 hover:bg-indigo-50 hover:text-indigo-600'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
+                  : 'bg-white text-slate-500 hover:bg-indigo-50 hover:text-indigo-600'
                   }`}
               >
                 <Users size={20} /> Usuarios y Accesos
@@ -536,8 +536,8 @@ const Admin: React.FC = () => {
               <button
                 onClick={() => setActiveTab('orders')}
                 className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeTab === 'orders'
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
-                    : 'bg-white text-slate-500 hover:bg-indigo-50 hover:text-indigo-600'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
+                  : 'bg-white text-slate-500 hover:bg-indigo-50 hover:text-indigo-600'
                   }`}
               >
                 <Shield size={20} /> Ventas (MP)

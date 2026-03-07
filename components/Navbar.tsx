@@ -19,10 +19,10 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentUser }) => {
             className="flex items-center cursor-pointer group"
             onClick={() => onNavigate('home')}
           >
-            <div className="bg-indigo-600 p-2 rounded-lg group-hover:bg-indigo-700 transition-colors">
-              <BookOpen className="h-6 w-6 text-white" />
+            <div className="flex items-center">
+              <img src="/logo.png" alt="AulaExpress Logo" className="h-10 w-10 object-contain" />
             </div>
-            <span className="ml-2 text-xl font-bold text-slate-900">Aula<span className="text-indigo-600">Express</span></span>
+            <span className="ml-2 text-xl font-bold text-slate-900 tracking-tight">Aula<span className="text-indigo-600">Express</span></span>
           </div>
 
           {/* Desktop Search */}
