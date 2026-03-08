@@ -36,7 +36,7 @@ serve(async (req) => {
             access,
             env: {
                 hasMP: !!Deno.env.get("MP_ACCESS_TOKEN"),
-                hasResend: !!Deno.env.get("RESEND_API_KEY"),
+                hasBrevo: !!Deno.env.get("BREVO_API_KEY"),
                 mpPrefix: Deno.env.get("MP_ACCESS_TOKEN")?.substring(0, 10),
                 mpLength: Deno.env.get("MP_ACCESS_TOKEN")?.length,
                 appBaseUrl: Deno.env.get("APP_BASE_URL")

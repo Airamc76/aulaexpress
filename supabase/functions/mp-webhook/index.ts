@@ -21,8 +21,8 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
     const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
     const MP_ACCESS_TOKEN = Deno.env.get("MP_ACCESS_TOKEN") || "";
-    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") || "";
-    const EMAIL_FROM = Deno.env.get("EMAIL_FROM") || "onboarding@resend.dev";
+    const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY") || "";
+    const EMAIL_FROM = Deno.env.get("EMAIL_FROM") || "";
     const APP_BASE_URL = Deno.env.get("APP_BASE_URL") || "";
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
@@ -206,13 +206,13 @@ serve(async (req) => {
         // Fetch course details for email
         const { data: course } = await supabase.from("courses").select("slug, title").eq("id", order.course_id).maybeSingle();
 
-        // Email Sending via Resend
-        await logStep(paymentId, orderId, "send_email", "start", { hasKey: !!RESEND_API_KEY });
+        // Email Sending via Brevo
+        await logStep(paymentId, orderId, "send_email", "start", { hasKey: !!BREVO_API_KEY });
         let emailStatus = "sent";
         let emailError = null;
         let providerId = null;
 
-        if (RESEND_API_KEY) {
+        if (BREVO_API_KEY) {
             const courseUrl = `${APP_BASE_URL}/player/${course?.slug || order.course_id}`;
             const emailHtml = isNewUser ? `
                 <div style="font-family: sans-serif; max-width: 600px; margin: auto;">
@@ -239,22 +239,30 @@ serve(async (req) => {
                 </div>
             `;
 
-            const resendRes = await fetch("https://api.resend.com/emails", {
+            const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
                 method: "POST",
-                headers: { "Authorization": `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
-                body: JSON.stringify({ from: EMAIL_FROM, to: buyerEmail, subject: "Tus credenciales de acceso - AulaExpress", html: emailHtml })
+                headers: {
+                    "api-key": BREVO_API_KEY,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    sender: { name: "AulaExpress", email: EMAIL_FROM },
+                    to: [{ email: buyerEmail }],
+                    subject: "Tus credenciales de acceso - AulaExpress",
+                    htmlContent: emailHtml
+                })
             });
 
-            const resendData = await resendRes.json().catch(() => null);
-            if (!resendRes.ok) {
+            const brevoData = await brevoRes.json().catch(() => null);
+            if (!brevoRes.ok) {
                 emailStatus = "failed";
-                emailError = resendData;
+                emailError = brevoData;
             } else {
-                providerId = resendData?.id;
+                providerId = brevoData?.messageId;
             }
         } else {
             emailStatus = "failed";
-            emailError = "RESEND_API_KEY missing";
+            emailError = "BREVO_API_KEY missing";
         }
 
         await logStep(paymentId, orderId, "send_email", emailStatus, { providerId }, emailError);

@@ -21,8 +21,8 @@ serve(async (req) => {
     try {
         const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
         const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-        const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") || "";
-        const EMAIL_FROM = Deno.env.get("EMAIL_FROM") || "onboarding@resend.dev";
+        const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY") || "";
+        const EMAIL_FROM = Deno.env.get("EMAIL_FROM") || "";
         const APP_BASE_URL = Deno.env.get("APP_BASE_URL") || "";
 
         const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
@@ -82,12 +82,12 @@ serve(async (req) => {
         const newPassword = generateTempPassword();
         await supabase.auth.admin.updateUserById(targetUserId, { password: newPassword, user_metadata: { must_change_password: true } });
 
-        // Send email via Resend
+        // Send email via Brevo
         let emailStatus = "sent";
         let emailError = null;
         let providerId = null;
 
-        if (RESEND_API_KEY) {
+        if (BREVO_API_KEY) {
             const courseUrl = `${APP_BASE_URL}/player/${course?.slug || order.course_id}`;
             const emailHtml = `
         <h2>Reenvío de tus credenciales de acceso</h2>
@@ -100,30 +100,30 @@ serve(async (req) => {
         <p><a href="${courseUrl}">Ir al curso</a></p>
       `;
 
-            const resendRes = await fetch("https://api.resend.com/emails", {
+            const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${RESEND_API_KEY}`,
+                    "api-key": BREVO_API_KEY,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    from: EMAIL_FROM,
-                    to: buyerEmail,
+                    sender: { name: "AulaExpress", email: EMAIL_FROM },
+                    to: [{ email: buyerEmail }],
                     subject: "Tus nuevas credenciales de acceso - AulaExpress",
-                    html: emailHtml
+                    htmlContent: emailHtml
                 })
             });
 
-            const resendData = await resendRes.json().catch(() => null);
-            if (!resendRes.ok) {
+            const brevoData = await brevoRes.json().catch(() => null);
+            if (!brevoRes.ok) {
                 emailStatus = "failed";
-                emailError = JSON.stringify(resendData);
+                emailError = JSON.stringify(brevoData);
             } else {
-                providerId = resendData?.id;
+                providerId = brevoData?.messageId;
             }
         } else {
             emailStatus = "failed";
-            emailError = "RESEND_API_KEY no configurada";
+            emailError = "BREVO_API_KEY no configurada";
         }
 
         // Log Email
