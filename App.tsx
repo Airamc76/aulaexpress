@@ -22,10 +22,18 @@ import { supabase } from './lib/supabase';
 // Simple Router Hook Implementation
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(() => {
-    const path = window.location.pathname.substring(1);
+    const path = window.location.pathname.substring(1).split('?')[0];
     return path || 'home';
   });
-  const [pageParams, setPageParams] = useState<any>({});
+
+  // Parse query params on initial load so direct URL visits work (e.g. /player?courseId=xxx)
+  const [pageParams, setPageParams] = useState<any>(() => {
+    const params: Record<string, string> = {};
+    new URLSearchParams(window.location.search).forEach((value, key) => {
+      params[key] = value;
+    });
+    return params;
+  });
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [session, setSession] = useState<any>(null);
   const [mustChangePassword, setMustChangePassword] = useState(false);
@@ -62,8 +70,14 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const handlePopState = () => {
-      const path = window.location.pathname.substring(1).split('?')[0]; // Remove query params from path for routing
+      const path = window.location.pathname.substring(1).split('?')[0];
       setCurrentPage(path || 'home');
+      // Restore query params from URL on browser back/forward
+      const params: Record<string, string> = {};
+      new URLSearchParams(window.location.search).forEach((value, key) => {
+        params[key] = value;
+      });
+      setPageParams(params);
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
