@@ -18,6 +18,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
       const { data } = await supabase
         .from('courses')
         .select('*')
+        .eq('is_visible', true)
         .limit(8)
         .order('created_at', { ascending: false });
 

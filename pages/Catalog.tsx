@@ -38,6 +38,7 @@ const Catalog: React.FC<CatalogProps> = ({ onNavigate, searchQuery: initialSearc
     const { data, error } = await supabase
       .from('courses')
       .select('*')
+      .eq('is_visible', true)
       .order('created_at', { ascending: false });
 
     if (error) {

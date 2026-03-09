@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Course } from '../types';
 import { CATEGORIES } from '../constants';
-import { Plus, Trash2, Edit, Save, X, BookOpen, LogOut, Users, Shield, Smartphone, Loader2, RefreshCw, AlertTriangle, Upload } from 'lucide-react';
+import { Plus, Trash2, Edit, Save, X, BookOpen, LogOut, Users, Shield, Smartphone, Loader2, RefreshCw, AlertTriangle, Upload, Eye, EyeOff } from 'lucide-react';
 import AdminAuth from '../components/AdminAuth';
 import AdminUsers from '../components/AdminUsers';
 import AdminOrders from '../components/AdminOrders';
@@ -320,6 +320,16 @@ const Admin: React.FC = () => {
     if (!confirm('¿Borrar curso?')) return;
     const { error } = await supabase.from('courses').delete().eq('id', id);
     if (error) alert('Error deleting'); else fetchCourses();
+  };
+
+  const toggleCourseVisibility = async (course: Course) => {
+    const newVisibility = !(course.is_visible ?? true);
+    const { error } = await supabase
+      .from('courses')
+      .update({ is_visible: newVisibility })
+      .eq('id', course.id);
+    if (error) alert('Error al cambiar visibilidad: ' + error.message);
+    else fetchCourses();
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -706,21 +716,44 @@ const Admin: React.FC = () => {
             {/* COURSE LIST */}
             <div className="space-y-4">
               {loadingCourses ? <p className="text-center text-slate-400">Cargando cursos...</p> : courses.map(course => (
-                <div key={course.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center group hover:border-indigo-200 transition-all">
-                  <div className="flex items-center gap-4">
-                    <img src={course.thumbnail} className="w-12 h-12 rounded-lg object-cover bg-gray-100" alt="" />
-                    <div>
-                      <h3 className="font-bold text-slate-900 leading-tight">{course.title}</h3>
-                      <p className="text-xs text-slate-500">{course.category} • ${course.price}</p>
+                <div key={course.id} className={`bg-white p-4 rounded-xl shadow-sm border transition-all group hover:border-indigo-200 ${(course.is_visible ?? true) ? 'border-gray-100' : 'border-dashed border-orange-200 opacity-60'
+                  }`}>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <img src={course.thumbnail} className="w-12 h-12 rounded-lg object-cover bg-gray-100" alt="" />
+                        {!(course.is_visible ?? true) && (
+                          <div className="absolute -top-1 -right-1 bg-orange-500 text-white rounded-full p-0.5">
+                            <EyeOff size={10} />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-slate-900 leading-tight">{course.title}</h3>
+                        <p className="text-xs text-slate-500">{course.category} • ${course.price}</p>
+                        {!(course.is_visible ?? true) && (
+                          <span className="text-[10px] font-bold text-orange-500 uppercase tracking-wider">Oculto del catálogo</span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => { setEditingCourseId(course.id); setCourseForm(course); setIsCustomCategory(!availableCategories.includes(course.category)); }} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg">
-                      <Edit size={18} />
-                    </button>
-                    <button onClick={() => deleteCourse(course.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg">
-                      <Trash2 size={18} />
-                    </button>
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => toggleCourseVisibility(course)}
+                        title={(course.is_visible ?? true) ? 'Ocultar del catálogo' : 'Mostrar en catálogo'}
+                        className={`p-2 rounded-lg transition-colors ${(course.is_visible ?? true)
+                            ? 'text-slate-400 hover:text-orange-500 hover:bg-orange-50'
+                            : 'text-orange-500 hover:text-green-600 hover:bg-green-50'
+                          }`}
+                      >
+                        {(course.is_visible ?? true) ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                      <button onClick={() => { setEditingCourseId(course.id); setCourseForm(course); setIsCustomCategory(!availableCategories.includes(course.category)); }} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg">
+                        <Edit size={18} />
+                      </button>
+                      <button onClick={() => deleteCourse(course.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg">
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

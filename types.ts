@@ -21,6 +21,7 @@ export interface Course {
   drive_link?: string;
   language?: 'Español' | 'Inglés';
   created_at?: string;
+  is_visible?: boolean;
 }
 
 export interface Module {
