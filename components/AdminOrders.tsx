@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Loader2, RefreshCw, Mail, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Loader2, RefreshCw, Mail, CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react';
 
 interface Order {
     id: string;
@@ -24,16 +24,30 @@ const AdminOrders: React.FC = () => {
 
     const fetchOrders = async () => {
         setLoading(true);
-        const { data, error } = await supabase
-            .from('orders')
-            .select('id, buyer_email, course_id, status, created_at, courses(title)')
-            .order('created_at', { ascending: false });
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error("No session");
 
-        if (error) {
-            console.error('Error fetching orders:', error);
-        } else {
-            // Map buyer_email to email for backward compatibility if needed
-            setOrders((data || []).map((o: any) => ({ ...o, email: o.buyer_email || o.email })) as unknown as Order[]);
+            const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL.replace(/\/$/, '');
+            const functionUrl = `${supabaseUrl}/functions/v1/debug-db`;
+
+            const res = await fetch(functionUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`
+                }
+            });
+
+            const data = await res.json();
+            if (data.ok && data.orders) {
+                setOrders((data.orders).map((o: any) => ({ ...o, email: o.buyer_email || o.email })) as unknown as Order[]);
+            } else {
+                setOrders([]);
+            }
+        } catch (e) {
+            console.error('Error fetching orders from debug-db:', e);
+            setOrders([]);
         }
         setLoading(false);
     };
@@ -41,10 +55,25 @@ const AdminOrders: React.FC = () => {
     const fetchLogs = async () => {
         setLoadingLogs(true);
         try {
-            const { data: wLogs } = await supabase.from('webhook_logs').select('*').order('created_at', { ascending: false }).limit(20);
-            const { data: eLogs } = await supabase.from('email_logs').select('*').order('created_at', { ascending: false }).limit(20);
-            setWebhookLogs(wLogs || []);
-            setEmailLogs(eLogs || []);
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error("No session");
+
+            const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL.replace(/\/$/, '');
+            const functionUrl = `${supabaseUrl}/functions/v1/debug-db`;
+
+            const res = await fetch(functionUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`
+                }
+            });
+
+            const data = await res.json();
+            if (data.ok) {
+                setWebhookLogs(data.logs || []);
+                setEmailLogs(data.emailLogs || []);
+            }
         } catch (e) {
             console.error('Error fetching debug logs:', e);
         }
@@ -64,7 +93,7 @@ const AdminOrders: React.FC = () => {
             if (!session) throw new Error("No session");
 
             // Dynamically get the function URL from environment
-            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL.replace(/\/$/, '');
+            const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL.replace(/\/$/, '');
             const functionUrl = `${supabaseUrl}/functions/v1/resend-credentials`;
 
             const res = await fetch(functionUrl, {
@@ -214,16 +243,14 @@ const AdminOrders: React.FC = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            {order.status === 'approved' && (
-                                                <button
-                                                    onClick={() => handleResendCredentials(order.id)}
-                                                    disabled={resendingId === order.id}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-800 font-bold text-xs rounded-lg transition-colors disabled:opacity-50"
-                                                >
-                                                    {resendingId === order.id ? <Loader2 className="animate-spin h-3.5 w-3.5" /> : <Mail className="h-3.5 w-3.5" />}
-                                                    Reenviar Credenciales
-                                                </button>
-                                            )}
+                                            <button
+                                                onClick={() => handleResendCredentials(order.id)}
+                                                disabled={resendingId === order.id}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-800 font-bold text-xs rounded-lg transition-colors disabled:opacity-50"
+                                            >
+                                                {resendingId === order.id ? <Loader2 className="animate-spin h-3.5 w-3.5" /> : <Mail className="h-3.5 w-3.5" />}
+                                                Reenviar Credenciales
+                                            </button>
                                         </td>
                                     </tr>
                                 ))

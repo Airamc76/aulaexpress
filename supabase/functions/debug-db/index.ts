@@ -27,6 +27,7 @@ serve(async (req) => {
         const { data: fatalLogs } = await supabase.from("webhook_logs").select("*").eq("step", "fatal_crash").order("created_at", { ascending: false }).limit(5);
         const { data: emailLogs } = await supabase.from("email_logs").select("*").order("created_at", { ascending: false }).limit(20);
         const { data: access } = await supabase.from("course_access").select("*").order("created_at", { ascending: false }).limit(20);
+        const { data: orders } = await supabase.from("orders").select("id, buyer_email, course_id, status, created_at, courses(title)").order("created_at", { ascending: false }).limit(50);
 
         return new Response(JSON.stringify({
             ok: true,
@@ -34,9 +35,10 @@ serve(async (req) => {
             fatalLogs,
             emailLogs,
             access,
+            orders,
             env: {
                 hasMP: !!Deno.env.get("MP_ACCESS_TOKEN"),
-                hasBrevo: !!Deno.env.get("BREVO_API_KEY"),
+                hasResend: !!Deno.env.get("RESEND_API_KEY"),
                 mpPrefix: Deno.env.get("MP_ACCESS_TOKEN")?.substring(0, 10),
                 mpLength: Deno.env.get("MP_ACCESS_TOKEN")?.length,
                 appBaseUrl: Deno.env.get("APP_BASE_URL")

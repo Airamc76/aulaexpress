@@ -38,10 +38,10 @@ serve(async (req) => {
             return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), { status: 401, headers: corsHeaders });
         }
 
-        // Admins and Staff only
+        // Admins only
         const { data: profile } = await supabase.from("profiles").select("role").eq("id", userData.user.id).single();
-        if (profile?.role !== "admin" && profile?.role !== "staff") {
-            return new Response(JSON.stringify({ ok: false, error: "Forbidden: Admins or Staff only" }), { status: 403, headers: corsHeaders });
+        if (profile?.role !== "admin") {
+            return new Response(JSON.stringify({ ok: false, error: "Forbidden: Admins only" }), { status: 403, headers: corsHeaders });
         }
 
         const body = await req.json().catch(() => ({}));
@@ -70,69 +70,60 @@ serve(async (req) => {
 
         const buyerEmail = order.buyer_email;
 
-        // Find User using profiles table
-        const { data: profileData, error: profileErr } = await supabase
-            .from("profiles")
-            .select("id")
-            .ilike("email", buyerEmail)
-            .maybeSingle();
-
-        const targetUserId = profileData?.id;
+        // Find User
+        const { data: existingUserObj } = await supabase.auth.admin.getUserByEmail(buyerEmail);
+        const targetUserId = existingUserObj?.user?.id;
 
         if (!targetUserId) {
-            return new Response(JSON.stringify({ ok: false, error: "User profile not found for email: " + buyerEmail, details: profileErr }), { status: 404, headers: corsHeaders });
+            return new Response(JSON.stringify({ ok: false, error: "User for order email not found in auth" }), { status: 404, headers: corsHeaders });
         }
 
         // Reset password
         const newPassword = generateTempPassword();
         await supabase.auth.admin.updateUserById(targetUserId, { password: newPassword, user_metadata: { must_change_password: true } });
 
-        // Email Sending via Resend
+        // Send email via Brevo
         let emailStatus = "sent";
         let emailError = null;
         let providerId = null;
 
-        if (RESEND_API_KEY) {
+        if (BREVO_API_KEY) {
             const courseUrl = `${APP_BASE_URL}/player/${course?.slug || order.course_id}`;
             const emailHtml = `
-                <div style="font-family: sans-serif; max-width: 600px; margin: auto;">
-                    <h2>Reenvío de tus credenciales de acceso</h2>
-                    <p>A pedido del administrador, estas son tus nuevas credenciales para el curso: <strong>${course?.title || "Curso"}</strong></p>
-                    <ul style="background: #f4f4f4; padding: 20px; list-style: none;">
-                      <li><strong>Email:</strong> ${buyerEmail}</li>
-                      <li><strong>Contraseña temporal:</strong> ${newPassword}</li>
-                    </ul>
-                    <p><strong>Importante:</strong> Se te pedirá que cambies esta contraseña al ingresar.</p>
-                    <p style="text-align: center; margin-top: 30px;">
-                        <a href="${courseUrl}" style="background: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Ir al curso</a>
-                    </p>
-                </div>
-            `;
+        <h2>Reenvío de tus credenciales de acceso</h2>
+        <p>A pedido del administrador, estas son tus nuevas credenciales para el curso: <strong>${course?.title || "Curso"}</strong></p>
+        <ul>
+          <li>Email: ${buyerEmail}</li>
+          <li>Contraseña temporal: <strong>${newPassword}</strong></li>
+        </ul>
+        <p><strong>Importante:</strong> Se te pedirá que cambies esta contraseña al ingresar.</p>
+        <p><a href="${courseUrl}">Ir al curso</a></p>
+      `;
 
-            const resendRes = await fetch("https://api.resend.com/emails", {
+            const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${RESEND_API_KEY}`,
+                    "api-key": BREVO_API_KEY,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    from: `AulaExpress <${EMAIL_FROM}>`,
-                    to: [buyerEmail],
+                    sender: { name: "AulaExpress", email: EMAIL_FROM },
+                    to: [{ email: buyerEmail }],
                     subject: "Tus nuevas credenciales de acceso - AulaExpress",
-                    html: emailHtml
+                    htmlContent: emailHtml
                 })
             });
 
-            const resendData = await resendRes.json().catch(() => null);
-            if (!resendRes.ok) {
+            const brevoData = await brevoRes.json().catch(() => null);
+            if (!brevoRes.ok) {
                 emailStatus = "failed";
-                emailError = resendData;
+                emailError = JSON.stringify(brevoData);
             } else {
-                providerId = resendData?.id;
+                providerId = brevoData?.messageId;
             }
         } else {
             emailStatus = "failed";
-            emailError = "RESEND_API_KEY missing";
+            emailError = "BREVO_API_KEY no configurada";
         }
 
         // Log Email
@@ -142,12 +133,12 @@ serve(async (req) => {
             to_email: buyerEmail,
             status: emailStatus,
             provider_id: providerId,
-            error: emailError ? JSON.stringify(emailError) : null
+            error: emailError
         });
 
         return new Response(JSON.stringify({ ok: true, emailStatus, error: emailError }), { status: 200, headers: corsHeaders });
 
     } catch (err: any) {
-        return new Response(JSON.stringify({ ok: false, error: err?.message || String(err), details: err?.stack }), { status: 500, headers: corsHeaders });
+        return new Response(JSON.stringify({ ok: false, error: "Unhandled error", details: err?.message }), { status: 500, headers: corsHeaders });
     }
 });
